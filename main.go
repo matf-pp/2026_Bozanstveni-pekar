@@ -8,8 +8,8 @@ import (
     "github.com/veandco/go-sdl2/sdl"
     "github.com/veandco/go-sdl2/ttf"
 
-    "bozanstveniPekar/screens"
-    "bozanstveniPekar/levels"
+    "2026_Bozanstveni-pekar/screens"
+    "2026_Bozanstveni-pekar/levels"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
 
-	"bozanstveniPekar/screens"
+	"2026_Bozanstveni-pekar/screens"
 )
 
 type Level2 struct {
