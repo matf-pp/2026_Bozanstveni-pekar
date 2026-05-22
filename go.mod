@@ -1,4 +1,4 @@
-module bozanstveniPekar
+module 2026_Bozanstveni-pekar
 
 go 1.26.2
 
