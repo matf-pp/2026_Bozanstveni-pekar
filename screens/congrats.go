@@ -5,7 +5,6 @@ import (
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-
 )
 
 type Congrats struct {
@@ -13,14 +12,18 @@ type Congrats struct {
 	BaseGame
 
 	screenTextTexture *sdl.Texture
-	screenTextSize int
-	screenTextW int32
-	screenTextH int32
+	screenTextSize    int
+	screenTextW       int32
+	screenTextH       int32
 
-	playAgainButton Button
+	uWonTexture *sdl.Texture
+	uWonW       int32
+	uWonH       int32
+
+	playAgainButton      Button
 	playAgainHoverButton Button
 
-	scoreButton Button
+	scoreButton      Button
 	scoreHoverButton Button
 }
 
@@ -36,21 +39,36 @@ func (g *Congrats) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
-	screenTextFont, err := g.LoadFont(80)
+	screenTextFont, err := g.LoadFont(70)
 	if err != nil {
 		return fmt.Errorf("error loading font%v\n", err)
 	}
-	defer screenTextFont.Close()
+	uWonFont, err := g.LoadFont(40)
+	if err != nil {
+		return fmt.Errorf("error loading font%v\n", err)
+	}
 
-	congratsSurf, err := screenTextFont.RenderUTF8Blended("Congrats", sdl.Color{R:255, G:255, B:255, A:255})
+	defer screenTextFont.Close()
+	defer uWonFont.Close()
+
+	congratsSurf, err := screenTextFont.RenderUTF8Blended("Congrats", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+	uWonSurf, err := uWonFont.RenderUTF8Blended("You won the game !!!", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
 	defer congratsSurf.Free()
+	defer uWonSurf.Free()
 
 	//prikaz
 	g.screenTextTexture, err = g.Renderer.CreateTextureFromSurface(congratsSurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
+	g.uWonTexture, err = g.Renderer.CreateTextureFromSurface(uWonSurf)
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
@@ -59,12 +77,16 @@ func (g *Congrats) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading screen text query %v\n", err)
 	}
+	_, _, g.uWonW, g.uWonH, err = g.uWonTexture.Query()
+	if err != nil {
+		return fmt.Errorf("error loading screen text query %v\n", err)
+	}
 
 	//obicna dugmad
 	g.playAgainButton, err = g.LoadButton(
 		"images/button.png", 200, 300, 200, 200,
 	)
-	g.SetButtonText(&g.playAgainButton, "play", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
+	g.SetButtonText(&g.playAgainButton, "play again", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 	g.scoreButton, err = g.LoadButton(
 		"images/button.png", 400, 300, 200, 200,
 	)
@@ -74,7 +96,7 @@ func (g *Congrats) LoadMedia() error {
 	g.playAgainHoverButton, err = g.LoadButton(
 		"images/buttonHover.png", 200, 300, 200, 200,
 	)
-	g.SetButtonText(&g.playAgainHoverButton, "play", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	g.SetButtonText(&g.playAgainHoverButton, "play again", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
 	g.playAgainButton.hoverTexture = g.playAgainHoverButton.texture
 	g.playAgainButton.hoverTextTexture = g.playAgainHoverButton.textBtnTexture
@@ -91,9 +113,12 @@ func (g *Congrats) LoadMedia() error {
 }
 
 func (g *Congrats) Close() {
-	if g!=nil {
+	if g != nil {
 		g.screenTextTexture.Destroy()
 		g.screenTextTexture = nil
+
+		g.uWonTexture.Destroy()
+		g.uWonTexture = nil
 
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
@@ -104,73 +129,107 @@ func (g *Congrats) Run() ScreenID {
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch e := event.(type) {
-				case *sdl.QuitEvent: //iks na prozoru ili crtl q
-					return ExitScreen
-				case *sdl.KeyboardEvent:
-					if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
-						switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
-						case sdl.SCANCODE_ESCAPE: //esc
-							return ExitScreen
-						}
+			case *sdl.QuitEvent: //iks na prozoru ili crtl q
+				return ExitScreen
+			case *sdl.KeyboardEvent:
+				if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
+					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
+					case sdl.SCANCODE_ESCAPE: //esc
+						return ExitScreen
 					}
-				case *sdl.MouseButtonEvent:
-					if e.Type == sdl.MOUSEBUTTONDOWN {
-						mouseX := e.X
-						mouseY := e.Y
-						
-						if g.playAgainButton.isClicked(mouseX,mouseY) {
-							fmt.Println("play again clicked")
-							return StartScreen
-						}
+				}
+			case *sdl.MouseButtonEvent:
+				if e.Type == sdl.MOUSEBUTTONDOWN {
+					mouseX := e.X
+					mouseY := e.Y
+
+					if g.playAgainButton.isClicked(mouseX, mouseY) {
+						fmt.Println("play again clicked")
+						return StartScreen
 					}
+				}
 			}
 		}
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
-			g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
-			//Copy(texture, šta uzeti iz slike, gde nacrtati)
-			w := g.screenTextW
-			h := g.screenTextH
-			g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
-				X: (WindowWidth - w) / 2,
-				Y: (WindowHeight- h)/2 - 70,
-				W: w,
-				H: h})
+		g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
+		//Copy(texture, šta uzeti iz slike, gde nacrtati)
+		w := g.screenTextW
+		h := g.screenTextH
 
-			mouseX, mouseY, _ := sdl.GetMouseState()
-			g.playAgainButton.hovered = g.playAgainButton.isClicked(mouseX, mouseY)
+		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
+			X: (WindowWidth - w) / 2,
+			Y: (WindowHeight-h)/2 - 70,
+			W: w,
+			H: h})
 
-			//PLAY	
-			if g.playAgainButton.hovered {
-				g.Renderer.Copy(g.playAgainButton.hoverTexture, nil, &g.playAgainButton.rect)
-			} else {
-				g.Renderer.Copy(g.playAgainButton.texture,nil,&g.playAgainButton.rect)
-			}
+		w = g.uWonW
+		h = g.uWonH
 
-			//tekst:
-			var tex *sdl.Texture
-			var tw, th int32
+		g.Renderer.Copy(g.uWonTexture, nil, &sdl.Rect{
+			X: (WindowWidth - w) / 2,
+			Y: (WindowHeight - h) / 2,
+			W: w,
+			H: h,
+		})
 
-			if g.playAgainButton.hovered {
-				tex = g.playAgainButton.hoverTextTexture
-			} else {
-				tex = g.playAgainButton.textBtnTexture
-			}
+		mouseX, mouseY, _ := sdl.GetMouseState()
+		g.playAgainButton.hovered = g.playAgainButton.isClicked(mouseX, mouseY)
+		g.scoreButton.hovered = g.scoreButton.isClicked(mouseX, mouseY)
 
-			_, _, tw, th, _ = tex.Query()
+		//PLAY
+		if g.playAgainButton.hovered {
+			g.Renderer.Copy(g.playAgainButton.hoverTexture, nil, &g.playAgainButton.rect)
+		} else {
+			g.Renderer.Copy(g.playAgainButton.texture, nil, &g.playAgainButton.rect)
+		}
 
-			g.Renderer.Copy(tex, nil, &sdl.Rect{
-				X: g.playAgainButton.rect.X + (g.playAgainButton.rect.W-tw)/2,
-				Y: g.playAgainButton.rect.Y + (g.playAgainButton.rect.H-th)/2+30,
-				W: tw,
-				H: th,
-			})
-			/*
+		//tekst:
+		var tex *sdl.Texture
+		var tw, th int32
+
+		if g.playAgainButton.hovered {
+			tex = g.playAgainButton.hoverTextTexture
+		} else {
+			tex = g.playAgainButton.textBtnTexture
+		}
+
+		_, _, tw, th, _ = tex.Query()
+
+		g.Renderer.Copy(tex, nil, &sdl.Rect{
+			X: g.playAgainButton.rect.X + (g.playAgainButton.rect.W-tw)/2,
+			Y: g.playAgainButton.rect.Y + (g.playAgainButton.rect.H-th)/2 + 30,
+			W: tw,
+			H: th,
+		})
+		/*
 			if g.tryAgainButton.isClicked(mouseX, mouseY){
-         	   return true  // prelaz na sledeći ekran
-        	}
-			*/
-			g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
-			sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
+				return true  // prelaz na sledeći ekran
+			}
+		*/
+
+		//SCORE
+		if g.scoreButton.hovered {
+			g.Renderer.Copy(g.scoreButton.hoverTexture, nil, &g.scoreButton.rect)
+		} else {
+			g.Renderer.Copy(g.scoreButton.texture, nil, &g.scoreButton.rect)
+		}
+		//score tekst
+		if g.scoreButton.hovered {
+			tex = g.scoreButton.hoverTextTexture
+		} else {
+			tex = g.scoreButton.textBtnTexture
+		}
+
+		_, _, tw, th, _ = tex.Query()
+
+		g.Renderer.Copy(tex, nil, &sdl.Rect{
+			X: g.scoreButton.rect.X + (g.scoreButton.rect.W-tw)/2,
+			Y: g.scoreButton.rect.Y + (g.scoreButton.rect.H-th)/2 + 30,
+			W: tw,
+			H: th,
+		})
+		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
+		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}
 	return StartScreen
 }

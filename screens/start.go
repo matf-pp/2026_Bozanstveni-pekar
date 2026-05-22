@@ -299,7 +299,7 @@ func (g *StartGame) Run() ScreenID {
 
 					if g.scoreButton.isClicked(mouseX, mouseY) {
 						fmt.Println("score clicked")
-						return Level2Screen
+						return CongratsScreen
 					}
 				}
 			}
