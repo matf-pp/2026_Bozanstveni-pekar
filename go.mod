@@ -1,4 +1,4 @@
-module 2026_Bozanstveni-pekar
+module github.com/matf-pp/2026_Bozanstveni-pekar
 
 go 1.26.2
 

@@ -30,6 +30,7 @@ const (
 	GameOverScreen
 	ExitScreen
 	CongratsScreen
+	TransitionScreen
 	Level1Screen
 	Level2Screen
 	Level3Screen
@@ -293,7 +294,7 @@ func (g *StartGame) Run() ScreenID {
 
 					if g.playButton.isClicked(mouseX, mouseY) {
 						fmt.Println("play clicked")
-						return GameOverScreen
+						return TransitionScreen
 					}
 
 					if g.scoreButton.isClicked(mouseX, mouseY) {
@@ -429,5 +430,5 @@ func (g *StartGame) Run() ScreenID {
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}
-	return GameOverScreen
+	return TransitionScreen
 }

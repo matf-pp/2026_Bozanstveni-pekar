@@ -6,7 +6,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
 
-	"2026_Bozanstveni-pekar/screens"
+	//"2026_Bozanstveni-pekar/screens"
+	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
 )
 
 type Level2 struct {
@@ -34,21 +35,23 @@ func NewLevel2(game *screens.Game) *Level2 {
 
 func (g *Level2) LoadMedia() error{
 	var err error
-	g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/level2.png")
+	g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Game.Renderer, "images/level2.png")
 	if err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
-	DanteTexture, err := img.LoadTexture(g.Renderer, "images/Dante.png")
+	DanteTexture, err := img.LoadTexture(g.Game.Renderer, "images/Dante.png")
 	g.dante = DanteTexture
+
+	//_, _, danteW, danteH, err = g.dante.Query()
 
 	if err!=nil {
 		return err
 	}
 
-	GoodTunnelTexture, err := img.LoadTexture(g.Renderer, "images/goodTunnel.png")
+	GoodTunnelTexture, err := img.LoadTexture(g.Game.Renderer, "images/goodTunnel.png")
 	g.goodTunnel = GoodTunnelTexture
 
-	BadTunnelTexture, err := img.LoadTexture(g.Renderer, "images/badTunnel.png")
+	BadTunnelTexture, err := img.LoadTexture(g.Game.Renderer, "images/badTunnel.png")
 	g.badTunnel = BadTunnelTexture
 
 	return err
@@ -80,30 +83,30 @@ func (g *Level2) Run() screens.ScreenID {
 				}
 			}
 		}
-		g.Renderer.Clear()                          
-		g.Renderer.Copy(g.BackgroundImage, nil, nil)
+		g.Game.Renderer.Clear()                          
+		g.Game.Renderer.Copy(g.BaseGame.BackgroundImage, nil, nil)
 
-		g.Renderer.Copy(g.dante, nil, &sdl.Rect{
+		g.Game.Renderer.Copy(g.dante, nil, &sdl.Rect{
 			X:50,Y:10,W:60,H:60,
 		})
 
-		g.Renderer.Copy(g.goodTunnel,nil,&sdl.Rect{
+		g.Game.Renderer.Copy(g.goodTunnel,nil,&sdl.Rect{
 			X:50,Y:500,W:105,H:105,
 		})
 
-		g.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
+		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
 			X:225,Y:500,W:100,H:100,
 		})
 
-		g.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
+		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
 			X:425,Y:500,W:100,H:100,
 		})
 
-		g.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
+		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
 			X:650,Y:500,W:100,H:100,
 		})
 
-		g.Renderer.Present()
+		g.Game.Renderer.Present()
 		sdl.Delay(16)
 		
 	}
