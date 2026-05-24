@@ -61,7 +61,6 @@ type Button struct {
 
 type BaseGame struct {
 	BackgroundImage *sdl.Texture
-	FontColor       sdl.Color
 }
 
 type StartGame struct {
@@ -346,11 +345,18 @@ func (g *StartGame) Close() {
 		g.playButton.texture = nil
 		g.playHoverButton.texture.Destroy()
 		g.playHoverButton.texture = nil
+
+		g.playHoverButton.hoverTexture.Destroy()
+		g.playHoverButton.hoverTexture = nil
+
 		g.scoreButton.texture.Destroy()
 		g.scoreButton.texture = nil
 		g.scoreHoverButton.texture.Destroy()
 		g.scoreHoverButton.texture = nil
-		
+
+		g.scoreHoverButton.hoverTexture.Destroy()
+		g.scoreHoverButton.hoverTexture = nil
+	
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
