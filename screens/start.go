@@ -6,7 +6,7 @@ import (
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 
-	/*"github.com/veandco/go-sdl2/mix"*/
+	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
@@ -61,6 +61,8 @@ type Button struct {
 
 type BaseGame struct {
 	BackgroundImage *sdl.Texture
+	ClickSound *mix.Chunk
+	Music *mix.Music
 }
 
 type StartGame struct {
@@ -70,6 +72,7 @@ type StartGame struct {
 	title2Texture *sdl.Texture
 
 	newGameTexture *sdl.Texture
+	newGame2Texture *sdl.Texture
 
 	insertNameTexture *sdl.Texture
 	playerName        string
@@ -101,6 +104,7 @@ type StartGame struct {
 	insertNameH int32
 	playerW     int32
 	playerH     int32
+
 }
 
 func NewStartGame(game *Game) *StartGame {
@@ -203,25 +207,31 @@ func (g *StartGame) LoadMedia() error {
 		return err
 	}
 	//titleFont, _ := g.LoadFont(80)
-	newGameFont, _ := g.LoadFont(50)
-	insertFont, _ := g.LoadFont(30)
+	newGameFont, _ := g.LoadFont(40)
+	newGame2Font, _ := g.LoadFont(40)
+	insertFont, _ := g.LoadFont(25)
 	exitFont, _ := g.LoadFont(20)
 	defer titleFont.Close()
 	defer newGameFont.Close()
+	defer newGame2Font.Close()
 	defer insertFont.Close()
 	defer exitFont.Close()
 	//kreiramo tekst u sliku koju zelimo da nacrtamo
 
-	titleSurf, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 72, G: 43, B: 6, A: 255})
+	titleSurf, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 69, G: 40, B: 18, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
-	titleSurf2, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 225, G: 130, B: 19, A: 255})
+	titleSurf2, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 220, G: 162, B: 94, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
-	newGameSurf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	newGameSurf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 69, G: 40, B: 18, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+	newGame2Surf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
@@ -243,6 +253,7 @@ func (g *StartGame) LoadMedia() error {
 	defer titleSurf.Free()
 	defer titleSurf2.Free()
 	defer newGameSurf.Free()
+	defer newGame2Surf.Free()
 	defer insertNameSurf.Free()
 	defer exitSurf.Free()
 	defer enterSurf.Free()
@@ -257,6 +268,10 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
 	g.newGameTexture, err = g.Renderer.CreateTextureFromSurface(newGameSurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
+	g.newGame2Texture, err = g.Renderer.CreateTextureFromSurface(newGame2Surf)
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
@@ -300,17 +315,17 @@ func (g *StartGame) LoadMedia() error {
 
 	//obicna dugmad
 	g.playButton, err = g.LoadButton(
-		"images/button.png", 200, 400, 200, 200,
+		"images/button.png", 200, 380, 200, 200,
 	)
 	g.SetButtonText(&g.playButton, "play", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 	g.scoreButton, err = g.LoadButton(
-		"images/button.png", 400, 400, 200, 200,
+		"images/button.png", 400, 380, 200, 200,
 	)
 	g.SetButtonText(&g.scoreButton, "score", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 200, 400, 200, 200,
+		"images/buttonHover.png", 200, 380, 200, 200,
 	)
 	g.SetButtonText(&g.playHoverButton, "play", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -318,24 +333,55 @@ func (g *StartGame) LoadMedia() error {
 	g.playButton.hoverTextTexture = g.playHoverButton.textBtnTexture
 
 	g.scoreHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 400, 400, 200, 200,
+		"images/buttonHover.png", 400, 380, 200, 200,
 	)
 	g.SetButtonText(&g.scoreHoverButton, "score", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
 	g.scoreButton.hoverTexture = g.scoreHoverButton.texture
 	g.scoreButton.hoverTextTexture = g.scoreHoverButton.textBtnTexture
 
+	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading chunk %v\n", err)
+	}
+
+	g.Music, err = mix.LoadMUS("music/thunderstorm.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading music %v\n", err)
+	}
+
+	err = g.Music.Play(-1)
+	if err != nil {
+		return fmt.Errorf("error playing music %v\n", err)
+	}
+
 	return err
 }
 
 func (g *StartGame) Close() {
 	if g != nil {
+		mix.HaltMusic()
+		mix.HaltChannel(-1) //zaustavljamo sve aktivne kanale odjednom, prekidamo sve sto rn svira
+
+		g.Music.Free()
+		g.Music = nil
+
+		g.ClickSound.Free()
+		g.ClickSound = nil
+
 		g.insertNameTexture.Destroy()
 		g.insertNameTexture = nil
 		g.titleTexture.Destroy()
 		g.titleTexture = nil
 		g.title2Texture.Destroy()
 		g.title2Texture = nil
+
+		g.newGameTexture.Destroy()
+		g.newGameTexture = nil
+
+		g.newGame2Texture.Destroy()
+		g.newGame2Texture = nil
+
 		g.bottomTextEscTexture.Destroy()
 		g.bottomTextEscTexture = nil
 		g.bottomTextEnterTexture.Destroy()
@@ -394,12 +440,14 @@ func (g *StartGame) Run() ScreenID {
 					mouseY := e.Y
 
 					if g.playButton.isClicked(mouseX, mouseY) {
+						g.ClickSound.Play(-1,0)
 						fmt.Println("play clicked")
 						return TransitionScreen
 					}
 
 					if g.scoreButton.isClicked(mouseX, mouseY) {
 						fmt.Println("score clicked")
+						g.ClickSound.Play(-1,0)
 						return CongratsScreen
 					}
 				}
@@ -411,21 +459,28 @@ func (g *StartGame) Run() ScreenID {
 		
 		g.Renderer.Copy(g.titleTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.titleW) / 2,
-			Y: (WindowHeight- g.titleH)/2 - 45,
+			Y: (WindowHeight- g.titleH)/2,
 			W: g.titleW,
 			H: g.titleH,
 		})
 
 		g.Renderer.Copy(g.title2Texture, nil, &sdl.Rect{
-			X: (WindowWidth - g.titleW) / 2 - 5,
-			Y: (WindowHeight-g.titleH)/2 - 45,
+			X: (WindowWidth - g.titleW) / 2 - 7,
+			Y: (WindowHeight-g.titleH)/2,
 			W: g.titleW,
 			H: g.titleH,
 		})
 
 		g.Renderer.Copy(g.newGameTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.newGameW) / 2,
-			Y: (WindowHeight- g.newGameH)/ 2 + 35 ,
+			Y: (WindowHeight- g.newGameH)/ 2 + 50 ,
+			W: g.newGameW,
+			H: g.newGameH,
+		})
+
+		g.Renderer.Copy(g.newGame2Texture, nil, &sdl.Rect{
+			X: (WindowWidth - g.newGameW) / 2 - 5,
+			Y: (WindowHeight - g.newGameH)/ 2 + 50 ,
 			W: g.newGameW,
 			H: g.newGameH,
 		})

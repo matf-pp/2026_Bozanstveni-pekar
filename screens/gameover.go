@@ -6,8 +6,8 @@ import (
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 
-	/*"github.com/veandco/go-sdl2/mix"
-	"github.com/veandco/go-sdl2/ttf"*/
+	"github.com/veandco/go-sdl2/mix"
+	//"github.com/veandco/go-sdl2/ttf"
 )
 
 type GameOver struct {
@@ -42,14 +42,15 @@ func (g *GameOver) CreateBlur() error {
     g.blur, err = g.Renderer.CreateTexture(
         sdl.PIXELFORMAT_RGBA8888,
         sdl.TEXTUREACCESS_TARGET,
-        200,
-        150,
+        120,
+        90,
     )
     if err != nil {
         return err
     }
 
     g.Renderer.SetRenderTarget(g.blur)
+	//g.Renderer.Clear()
     g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
     g.Renderer.SetRenderTarget(nil)
 
@@ -58,7 +59,7 @@ func (g *GameOver) CreateBlur() error {
 
 func (g *GameOver) LoadMedia() error {
 	var err error
-	if g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/demo.jpg"); err != nil {
+	if g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
 	screenTextFont, err := g.LoadFont(80)
@@ -122,6 +123,26 @@ func (g *GameOver) LoadMedia() error {
 	g.tryAgainButton.hoverTexture = g.tryAgainHoverButton.texture
 	g.tryAgainButton.hoverTextTexture = g.tryAgainHoverButton.textBtnTexture
 
+	err = g.CreateBlur()
+	if err != nil {
+		return err
+	}
+
+	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading chunk %v\n", err)
+	}
+
+	g.Music, err = mix.LoadMUS("sounds/gameover.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading music %v\n", err)
+	}
+
+	err = g.Music.Play(0)
+	if err != nil {
+		return fmt.Errorf("error playing music %v\n", err)
+	}
+
 	return err
 }
 
@@ -145,6 +166,7 @@ func (g *GameOver) Run() ScreenID{
 						
 						if g.tryAgainButton.isClicked(mouseX,mouseY) {
 							fmt.Println("try again clicked")
+							g.ClickSound.Play(-1,0)
 							return StartScreen
 						}
 					}
@@ -212,6 +234,14 @@ func (g *GameOver) Run() ScreenID{
 func (g *GameOver) Close() { 
 	if g != nil {
 		//gasimo i postavimo adresu na 0 -> free
+		mix.HaltMusic()
+		mix.HaltChannel(-1)
+
+		g.Music.Free()
+		g.Music = nil
+
+		g.ClickSound.Free()
+		g.ClickSound = nil
 		g.screenTextTexture.Destroy()
 		g.screenTextTexture = nil
 
@@ -228,5 +258,6 @@ func (g *GameOver) Close() {
 
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
+
 	}
 }

@@ -6,7 +6,7 @@ import (
 	//"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 
-	/*"github.com/veandco/go-sdl2/mix"*/
+	"github.com/veandco/go-sdl2/mix"
 	//"github.com/veandco/go-sdl2/ttf"
 	//"2026_Bozanstveni-pekar/levels"
 )
@@ -92,13 +92,27 @@ func (g *Transition) LoadMedia() error {
 	_, _, g.tW, g.tH, err = g.transitionTextTexture.Query()
 	_, _, g.tsW, g.tsH, err = g.transitionSubtextTexture.Query()
 
+	g.Music, err = mix.LoadMUS("sounds/transition.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading music %v\n", err)
+	}
 
+	err = g.Music.Play(0)
+	if err != nil {
+		return fmt.Errorf("error playing music %v\n", err)
+	}
+	mix.FadeOutMusic(5000)
 	return err
 }
 
 
 func (g *Transition) Close() {
 	if g != nil {
+		mix.HaltMusic()
+		mix.HaltChannel(-1)
+
+		g.Music.Free()
+		g.Music = nil
 		g.transitionTextTexture.Destroy()
 		g.transitionTextTexture = nil
 		g.transitionSubtextTexture.Destroy()

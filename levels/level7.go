@@ -5,6 +5,7 @@ import (
 
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
+	"github.com/veandco/go-sdl2/mix"
 
 	//"2026_Bozanstveni-pekar/screens"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
@@ -53,12 +54,24 @@ func (g *Level7) LoadMedia() error{
 
 	BadTunnelTexture, err := img.LoadTexture(g.Game.Renderer, "images/badTunnel.png")
 	g.badTunnel = BadTunnelTexture
+	g.Music, err = mix.LoadMUS("music/spaceroad.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading music %v\n", err)
+	}
 
+	err = g.Music.Play(0)
+	if err != nil {
+		return fmt.Errorf("error playing music %v\n", err)
+	}
 	return err
 }
 
 func (g *Level7) Close() {
 	if g!=nil {
+		mix.HaltMusic()
+		mix.HaltChannel(-1)
+		g.Music.Free()
+		g.Music = nil
 		g.dante.Destroy()
 		g.dante = nil
 		g.goodTunnel.Destroy()

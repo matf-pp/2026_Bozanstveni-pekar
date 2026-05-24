@@ -5,6 +5,7 @@ import (
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/mix"
 )
 
 type Congrats struct {
@@ -43,14 +44,15 @@ func (g *Congrats) CreateBlur() error {
     g.blur, err = g.Renderer.CreateTexture(
         sdl.PIXELFORMAT_RGBA8888,
         sdl.TEXTUREACCESS_TARGET,
-        200,
-        150,
+        120,
+        90,
     )
     if err != nil {
         return err
     }
 
     g.Renderer.SetRenderTarget(g.blur)
+	//g.Renderer.Clear()
     g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
     g.Renderer.SetRenderTarget(nil)
 
@@ -59,7 +61,7 @@ func (g *Congrats) CreateBlur() error {
 
 func (g *Congrats) LoadMedia() error {
 	var err error
-	g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/demo.jpg")
+	g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg")
 	if err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
@@ -133,11 +135,37 @@ func (g *Congrats) LoadMedia() error {
 	g.scoreButton.hoverTexture = g.scoreHoverButton.texture
 	g.scoreButton.hoverTextTexture = g.scoreHoverButton.textBtnTexture
 
+	err = g.CreateBlur()
+	if err != nil {
+		return err
+	}
+
+	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading chunk %v\n", err)
+	}
+
+	g.Music, err = mix.LoadMUS("sounds/win.mp3")
+	if err != nil{
+		return fmt.Errorf("error loading music %v\n", err)
+	}
+
+	err = g.Music.Play(0)
+	if err != nil {
+		return fmt.Errorf("error playing music %v\n", err)
+	}
+
 	return err
 }
 
 func (g *Congrats) Close() {
 	if g != nil {
+		mix.HaltMusic()
+		mix.HaltChannel(-1)
+		g.Music.Free()
+		g.Music = nil
+		g.ClickSound.Free()
+		g.ClickSound = nil
 		g.screenTextTexture.Destroy()
 		g.screenTextTexture = nil
 
@@ -155,6 +183,7 @@ func (g *Congrats) Close() {
 
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
+
 	}
 }
 
@@ -178,7 +207,13 @@ func (g *Congrats) Run() ScreenID {
 
 					if g.playAgainButton.isClicked(mouseX, mouseY) {
 						fmt.Println("play again clicked")
+						g.ClickSound.Play(-1,0)
 						return StartScreen
+					}
+					if g.scoreButton.isClicked(mouseX, mouseY) {
+						fmt.Println("score clicked")
+						g.ClickSound.Play(-1,0)
+						return GameOverScreen
 					}
 				}
 			}
