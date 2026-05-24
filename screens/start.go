@@ -26,7 +26,7 @@ type Screen interface {
 type ScreenID int
 
 const (
-	StartScreen ScreenID = iota
+	StartScreen ScreenID = iota //konstanta za enum
 	GameOverScreen
 	ExitScreen
 	CongratsScreen
@@ -81,9 +81,13 @@ type StartGame struct {
 	scoreButton      Button
 	scoreHoverButton Button
 
-	escape *sdl.Texture
-	escapeW int32
-	escapeH int32
+	bottomTextEscTexture *sdl.Texture
+	bottomTextEscW int32
+	bottomTextEscH int32
+
+	bottomTextEnterTexture *sdl.Texture
+	bottomTextEnterW int32
+	bottomTextEnterH int32
 
 	cursorVisible bool
 	blink         uint64
@@ -228,7 +232,11 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
-	exitSurf, err := exitFont.RenderUTF8Blended("Press esc to exit game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	exitSurf, err := exitFont.RenderUTF8Blended("Press esc to exit", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+	enterSurf, err := exitFont.RenderUTF8Blended("Press enter to play", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
@@ -238,6 +246,7 @@ func (g *StartGame) LoadMedia() error {
 	defer newGameSurf.Free()
 	defer insertNameSurf.Free()
 	defer exitSurf.Free()
+	defer enterSurf.Free()
 
 	//prikaz
 	g.titleTexture, err = g.Renderer.CreateTextureFromSurface(titleSurf)
@@ -256,7 +265,11 @@ func (g *StartGame) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
-	g.escape, err = g.Renderer.CreateTextureFromSurface(exitSurf)
+	g.bottomTextEscTexture, err = g.Renderer.CreateTextureFromSurface(exitSurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
+	g.bottomTextEnterTexture, err = g.Renderer.CreateTextureFromSurface(enterSurf)
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
@@ -277,7 +290,11 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading insert query %v\n", err)
 	}
 
-	_, _, g.escapeW, g.escapeH, err = g.escape.Query()
+	_, _, g.bottomTextEscW, g.bottomTextEscH, err = g.bottomTextEscTexture.Query()
+	if err != nil {
+		return fmt.Errorf("error loading exit query %v\n", err)
+	}
+	_, _, g.bottomTextEnterW, g.bottomTextEnterH, err = g.bottomTextEnterTexture.Query()
 	if err != nil {
 		return fmt.Errorf("error loading exit query %v\n", err)
 	}
@@ -320,8 +337,10 @@ func (g *StartGame) Close() {
 		g.titleTexture = nil
 		g.title2Texture.Destroy()
 		g.title2Texture = nil
-		g.escape.Destroy()
-		g.escape = nil
+		g.bottomTextEscTexture.Destroy()
+		g.bottomTextEscTexture = nil
+		g.bottomTextEnterTexture.Destroy()
+		g.bottomTextEnterTexture = nil
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
@@ -373,34 +392,33 @@ func (g *StartGame) Run() ScreenID {
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
 		g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
 		//Copy(texture, šta uzeti iz slike, gde nacrtati)
-		w := g.titleW
-		h := g.titleH
+		
 		g.Renderer.Copy(g.titleTexture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight-h)/2 - 45,
-			W: w,
-			H: h})
+			X: (WindowWidth - g.titleW) / 2,
+			Y: (WindowHeight- g.titleH)/2 - 45,
+			W: g.titleW,
+			H: g.titleH,
+		})
 
 		g.Renderer.Copy(g.title2Texture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2 - 5,
-			Y: (WindowHeight-h)/2 - 45,
-			W: w,
-			H: h})
+			X: (WindowWidth - g.titleW) / 2 - 5,
+			Y: (WindowHeight-g.titleH)/2 - 45,
+			W: g.titleW,
+			H: g.titleH,
+		})
 
 		g.Renderer.Copy(g.newGameTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.newGameW) / 2,
 			Y: (WindowHeight- g.newGameH)/ 2 + 35 ,
 			W: g.newGameW,
-			H: g.newGameH})
-
-		w = g.insertNameW
-		h = g.insertNameH
+			H: g.newGameH,
+		})
 
 		g.Renderer.Copy(g.insertNameTexture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight - h) / 2 + 90,
-			W: w,
-			H: h,
+			X: (WindowWidth - g.insertNameW) / 2,
+			Y: (WindowHeight - g.insertNameH) / 2 + 90,
+			W: g.insertNameW,
+			H: g.insertNameH,
 		})
 
 		//input box
@@ -417,7 +435,8 @@ func (g *StartGame) Run() ScreenID {
 			W: boxW,
 			H: boxH,
 		})
-		w, h = 0, 0
+		w := int32(0)
+		h := int32(0)
 		if g.playerNameTexture != nil {
 			//ako postoji tekst onda pozicioniramo trenutne promenljve na velicinu fonta za igraca
 			w = g.playerW
@@ -457,11 +476,15 @@ func (g *StartGame) Run() ScreenID {
 		g.playButton.hovered = g.playButton.isClicked(mouseX, mouseY)
 		g.scoreButton.hovered = g.scoreButton.isClicked(mouseX, mouseY)
 
+		var bottomText *sdl.Texture
+
 		//PLAY
 		if g.playButton.hovered {
 			g.Renderer.Copy(g.playButton.hoverTexture, nil, &g.playButton.rect)
+			bottomText = g.bottomTextEnterTexture
 		} else {
 			g.Renderer.Copy(g.playButton.texture, nil, &g.playButton.rect)
+			bottomText = g.bottomTextEscTexture
 		}
 
 		//tekst:
@@ -505,11 +528,13 @@ func (g *StartGame) Run() ScreenID {
 			H: th,
 		})
 
-		g.Renderer.Copy(g.escape, nil, &sdl.Rect{
-			X: (WindowWidth - g.newGameW) / 2 + 40,
-			Y: (WindowHeight- g.newGameH)/ 2 + 290 ,
-			W: g.escapeW,
-			H: g.escapeH})
+		_, _, tw, th, _ = bottomText.Query()
+
+		g.Renderer.Copy(bottomText, nil, &sdl.Rect{
+			X: (WindowWidth - tw) / 2,
+			Y: (WindowHeight- th)/ 2 + 280 ,
+			W: tw,
+			H: th})
 
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
