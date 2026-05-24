@@ -35,7 +35,7 @@ func NewLevel7(game *screens.Game) *Level1 {
 
 func (g *Level7) LoadMedia() error{
 	var err error
-	g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Game.Renderer, "images/level2.png")
+	g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Game.Renderer, "images/lvl7.png")
 	if err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}

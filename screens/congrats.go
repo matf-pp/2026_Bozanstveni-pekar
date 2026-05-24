@@ -25,12 +25,36 @@ type Congrats struct {
 
 	scoreButton      Button
 	scoreHoverButton Button
+
+	blur *sdl.Texture
+	snapped bool
 }
 
 func NewCongrats(game *Game) *Congrats {
 	return &Congrats{
 		Game: game,
 	}
+}
+
+//argument metode - (scene *sdl.Texture)
+func (g *Congrats) CreateBlur() error {
+    var err error
+
+    g.blur, err = g.Renderer.CreateTexture(
+        sdl.PIXELFORMAT_RGBA8888,
+        sdl.TEXTUREACCESS_TARGET,
+        200,
+        150,
+    )
+    if err != nil {
+        return err
+    }
+
+    g.Renderer.SetRenderTarget(g.blur)
+    g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
+    g.Renderer.SetRenderTarget(nil)
+
+    return nil
 }
 
 func (g *Congrats) LoadMedia() error {
@@ -43,7 +67,7 @@ func (g *Congrats) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font%v\n", err)
 	}
-	uWonFont, err := g.LoadFont(40)
+	uWonFont, err := g.LoadFont(30)
 	if err != nil {
 		return fmt.Errorf("error loading font%v\n", err)
 	}
@@ -151,14 +175,23 @@ func (g *Congrats) Run() ScreenID {
 			}
 		}
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
-		g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
-		//Copy(texture, šta uzeti iz slike, gde nacrtati)
+		
+		//blur
+		blrDst := sdl.Rect{X:0,Y:0,W:800,H:600}
+		g.Renderer.Copy(g.blur,nil, &blrDst)
+
+		g.Renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+		g.Renderer.SetDrawColor(0,0,0,150)
+		g.Renderer.FillRect(nil)
+
+		//g.Renderer.Copy(g.BackgroundImage, nil, nil) 
+
 		w := g.screenTextW
 		h := g.screenTextH
 
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
 			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight-h)/2 - 70,
+			Y: (WindowHeight-h)/2,
 			W: w,
 			H: h})
 
@@ -167,7 +200,7 @@ func (g *Congrats) Run() ScreenID {
 
 		g.Renderer.Copy(g.uWonTexture, nil, &sdl.Rect{
 			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight - h) / 2,
+			Y: (WindowHeight - h) / 2 +70,
 			W: w,
 			H: h,
 		})

@@ -162,9 +162,6 @@ func (g *Transition) Run() ScreenID {
 
 		g.Renderer.Present()
 		sdl.Delay(16)
-	}
-
-		
+	}	
 	return g.next
 }
-

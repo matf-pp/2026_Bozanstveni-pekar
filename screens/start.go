@@ -68,6 +68,10 @@ type StartGame struct {
 	*Game
 	BaseGame
 	titleTexture      *sdl.Texture
+	title2Texture *sdl.Texture
+
+	newGameTexture *sdl.Texture
+
 	insertNameTexture *sdl.Texture
 	playerName        string
 	playerNameTexture *sdl.Texture
@@ -82,6 +86,10 @@ type StartGame struct {
 
 	titleW      int32
 	titleH      int32
+
+	newGameW int32
+	newGameH int32
+
 	insertNameW int32
 	insertNameH int32
 	playerW     int32
@@ -180,29 +188,55 @@ func (g *Game) SetButtonText(b *Button, text string, fontSize int, color sdl.Col
 
 func (g *StartGame) LoadMedia() error {
 	var err error
-	if g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/demo.jpg"); err != nil {
+	if g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
-	titleFont, _ := g.LoadFont(80)
-	insertFont, _ := g.LoadFont(40)
+	titleFont, err := ttf.OpenFont("fonts/Early_GameBoy.ttf",45)
+	if err != nil {
+		return err
+	}
+	//titleFont, _ := g.LoadFont(80)
+	newGameFont, _ := g.LoadFont(50)
+	insertFont, _ := g.LoadFont(30)
 	defer titleFont.Close()
+	defer newGameFont.Close()
 	defer insertFont.Close()
 	//kreiramo tekst u sliku koju zelimo da nacrtamo
 
-	newGameSurf, err := titleFont.RenderUTF8Blended("New Game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	titleSurf, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 72, G: 43, B: 6, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
+	titleSurf2, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 225, G: 130, B: 19, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+
+	newGameSurf, err := newGameFont.RenderUTF8Blended("New game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+
 	insertNameSurf, err := insertFont.RenderUTF8Blended("Insert name", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
+	defer titleSurf.Free()
+	defer titleSurf2.Free()
 	defer newGameSurf.Free()
 	defer insertNameSurf.Free()
 
 	//prikaz
-	g.titleTexture, err = g.Renderer.CreateTextureFromSurface(newGameSurf)
+	g.titleTexture, err = g.Renderer.CreateTextureFromSurface(titleSurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
+	g.title2Texture, err = g.Renderer.CreateTextureFromSurface(titleSurf2)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
+	g.newGameTexture, err = g.Renderer.CreateTextureFromSurface(newGameSurf)
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
@@ -217,6 +251,11 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading title query %v\n", err)
 	}
 
+	_, _, g.newGameW, g.newGameH, err = g.newGameTexture.Query()
+	if err != nil {
+		return fmt.Errorf("error loading title query %v\n", err)
+	}
+
 	_, _, g.insertNameW, g.insertNameH, err = g.insertNameTexture.Query()
 	if err != nil {
 		return fmt.Errorf("error loading insert query %v\n", err)
@@ -224,17 +263,17 @@ func (g *StartGame) LoadMedia() error {
 
 	//obicna dugmad
 	g.playButton, err = g.LoadButton(
-		"images/button.png", 200, 300, 200, 200,
+		"images/button.png", 200, 400, 200, 200,
 	)
 	g.SetButtonText(&g.playButton, "play", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 	g.scoreButton, err = g.LoadButton(
-		"images/button.png", 400, 300, 200, 200,
+		"images/button.png", 400, 400, 200, 200,
 	)
 	g.SetButtonText(&g.scoreButton, "score", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 200, 300, 200, 200,
+		"images/buttonHover.png", 200, 400, 200, 200,
 	)
 	g.SetButtonText(&g.playHoverButton, "play", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -242,7 +281,7 @@ func (g *StartGame) LoadMedia() error {
 	g.playButton.hoverTextTexture = g.playHoverButton.textBtnTexture
 
 	g.scoreHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 400, 300, 200, 200,
+		"images/buttonHover.png", 400, 400, 200, 200,
 	)
 	g.SetButtonText(&g.scoreHoverButton, "score", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -258,6 +297,8 @@ func (g *StartGame) Close() {
 		g.insertNameTexture = nil
 		g.titleTexture.Destroy()
 		g.titleTexture = nil
+		g.title2Texture.Destroy()
+		g.title2Texture = nil
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
@@ -282,6 +323,8 @@ func (g *StartGame) Run() ScreenID {
 							g.renderText(g.playerName)
 						}
 						//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
+					case sdl.SCANCODE_RETURN:
+						return TransitionScreen
 					}
 				}
 			case *sdl.TextInputEvent:
@@ -311,16 +354,28 @@ func (g *StartGame) Run() ScreenID {
 		h := g.titleH
 		g.Renderer.Copy(g.titleTexture, nil, &sdl.Rect{
 			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight-h)/2 - 70,
+			Y: (WindowHeight-h)/2 - 45,
 			W: w,
 			H: h})
+
+		g.Renderer.Copy(g.title2Texture, nil, &sdl.Rect{
+			X: (WindowWidth - w) / 2 - 5,
+			Y: (WindowHeight-h)/2 - 45,
+			W: w,
+			H: h})
+
+		g.Renderer.Copy(g.newGameTexture, nil, &sdl.Rect{
+			X: (WindowWidth - g.newGameW) / 2,
+			Y: (WindowHeight- g.newGameH)/ 2 + 35 ,
+			W: g.newGameW,
+			H: g.newGameH})
 
 		w = g.insertNameW
 		h = g.insertNameH
 
 		g.Renderer.Copy(g.insertNameTexture, nil, &sdl.Rect{
 			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight - h) / 2,
+			Y: (WindowHeight - h) / 2 + 90,
 			W: w,
 			H: h,
 		})
@@ -331,7 +386,7 @@ func (g *StartGame) Run() ScreenID {
 		boxH := int32(50)
 
 		boxX := int32((WindowWidth - boxW) / 2)
-		boxY := int32(330)
+		boxY := int32(410)
 
 		g.Renderer.FillRect(&sdl.Rect{
 			X: boxX,

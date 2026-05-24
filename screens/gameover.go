@@ -18,8 +18,15 @@ type GameOver struct {
 	screenTextW int32
 	screenTextH int32
 
+	smiley *sdl.Texture
+	smileyW int32
+	smileyH int32
+
 	tryAgainButton Button
 	tryAgainHoverButton Button
+
+	blur *sdl.Texture
+	snapped bool //za snapshot
 }
 
 
@@ -27,6 +34,26 @@ func NewGameOver(game *Game) *GameOver {
 	return &GameOver{
 		Game: game,
 	}
+}
+//argument metode - (scene *sdl.Texture)
+func (g *GameOver) CreateBlur() error {
+    var err error
+
+    g.blur, err = g.Renderer.CreateTexture(
+        sdl.PIXELFORMAT_RGBA8888,
+        sdl.TEXTUREACCESS_TARGET,
+        200,
+        150,
+    )
+    if err != nil {
+        return err
+    }
+
+    g.Renderer.SetRenderTarget(g.blur)
+    g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
+    g.Renderer.SetRenderTarget(nil)
+
+    return nil
 }
 
 func (g *GameOver) LoadMedia() error {
@@ -38,23 +65,41 @@ func (g *GameOver) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font%v\n", err)
 	}
+	smileyFont, err := g.LoadFont(30)
+	if err != nil {
+		return fmt.Errorf("error loading font%v\n", err)
+	}
+	defer smileyFont.Close()
 	defer screenTextFont.Close()
 
 	gameOverSurf, err := screenTextFont.RenderUTF8Blended("Game Over",sdl.Color{R:255, G:255, B:255, A:255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
+	smileySurf, err := smileyFont.RenderUTF8Blended(":(",sdl.Color{R:255, G:255, B:255, A:255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
 
 	defer gameOverSurf.Free()
+	defer smileySurf.Free()
 
 	//prikaz
 	g.screenTextTexture, err = g.Renderer.CreateTextureFromSurface(gameOverSurf)
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
+	g.smiley, err = g.Renderer.CreateTextureFromSurface(smileySurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
 
 	//izvlacenje podataka
 	_, _, g.screenTextW, g.screenTextH, err = g.screenTextTexture.Query()
+	if err != nil {
+		return fmt.Errorf("error loading screen text query %v\n", err)
+	}
+	_, _, g.smileyW, g.smileyH, err = g.smiley.Query()
 	if err != nil {
 		return fmt.Errorf("error loading screen text query %v\n", err)
 	}
@@ -105,53 +150,69 @@ func (g *GameOver) Run() ScreenID{
 					}
 			}
 		}
-		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
-			g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
-			//Copy(texture, šta uzeti iz slike, gde nacrtati)
-			w := g.screenTextW
-			h := g.screenTextH
-			g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
-				X: (WindowWidth - w) / 2,
-				Y: (WindowHeight- h)/2 - 70,
-				W: w,
-				H: h})
+		g.Renderer.Clear()
+		
+		//blur
+		blrDst := sdl.Rect{X:0,Y:0,W:800,H:600}
+		g.Renderer.Copy(g.blur,nil, &blrDst)
 
-			mouseX, mouseY, _ := sdl.GetMouseState()
-			g.tryAgainButton.hovered = g.tryAgainButton.isClicked(mouseX, mouseY)
+		g.Renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+		g.Renderer.SetDrawColor(0,0,0,150)
+		g.Renderer.FillRect(nil)
 
-			//PLAY	
-			if g.tryAgainButton.hovered {
-				g.Renderer.Copy(g.tryAgainButton.hoverTexture, nil, &g.tryAgainButton.rect)
-			} else {
-				g.Renderer.Copy(g.tryAgainButton.texture,nil,&g.tryAgainButton.rect)
-			}
+		//g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
+		
+		w := g.screenTextW
+		h := g.screenTextH
+		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
+			X: (WindowWidth - w) / 2,
+			Y: (WindowHeight- h)/2,
+			W: w,
+			H: h})
 
-			//tekst:
-			var tex *sdl.Texture
-			var tw, th int32
+		g.Renderer.Copy(g.smiley, nil, &sdl.Rect{
+		X: (WindowWidth - g.smileyW) / 2,
+		Y: (WindowHeight- g.smileyH)/2 + 70,
+		W: g.smileyW,
+		H: g.smileyH})
 
-			if g.tryAgainButton.hovered {
-				tex = g.tryAgainButton.hoverTextTexture
-			} else {
-				tex = g.tryAgainButton.textBtnTexture
-			}
+		mouseX, mouseY, _ := sdl.GetMouseState()
+		g.tryAgainButton.hovered = g.tryAgainButton.isClicked(mouseX, mouseY)
 
-			_, _, tw, th, _ = tex.Query()
+		//PLAY	
+		if g.tryAgainButton.hovered {
+			g.Renderer.Copy(g.tryAgainButton.hoverTexture, nil, &g.tryAgainButton.rect)
+		} else {
+			g.Renderer.Copy(g.tryAgainButton.texture,nil,&g.tryAgainButton.rect)
+		}
 
-			g.Renderer.Copy(tex, nil, &sdl.Rect{
-				X: g.tryAgainButton.rect.X + (g.tryAgainButton.rect.W-tw)/2,
-				Y: g.tryAgainButton.rect.Y + (g.tryAgainButton.rect.H-th)/2+30,
-				W: tw,
-				H: th,
-			})
-			/*
-			if g.tryAgainButton.isClicked(mouseX, mouseY){
-         	   return true  // prelaz na sledeći ekran
-        	}
-			*/
-			g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
-			sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
+		//tekst:
+		var tex *sdl.Texture
+		var tw, th int32
+
+		if g.tryAgainButton.hovered {
+			tex = g.tryAgainButton.hoverTextTexture
+		} else {
+			tex = g.tryAgainButton.textBtnTexture
+		}
+
+		_, _, tw, th, _ = tex.Query()
+
+		g.Renderer.Copy(tex, nil, &sdl.Rect{
+			X: g.tryAgainButton.rect.X + (g.tryAgainButton.rect.W-tw)/2,
+			Y: g.tryAgainButton.rect.Y + (g.tryAgainButton.rect.H-th)/2+30,
+			W: tw,
+			H: th,
+		})
+		/*
+		if g.tryAgainButton.isClicked(mouseX, mouseY){
+			return true  // prelaz na sledeći ekran
+		}
+		*/
+		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
+		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}
+
 	return ExitScreen
 }
 
@@ -161,13 +222,18 @@ func (g *GameOver) Close() {
 		g.screenTextTexture.Destroy()
 		g.screenTextTexture = nil
 
+		g.blur.Destroy()
+		g.blur = nil
+
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 
+		/*
 		g.Renderer.Destroy()
 		g.Renderer = nil
 
 		g.Window.Destroy()
 		g.Window = nil
+		*/
 	}
 }
