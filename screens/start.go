@@ -81,6 +81,10 @@ type StartGame struct {
 	scoreButton      Button
 	scoreHoverButton Button
 
+	escape *sdl.Texture
+	escapeW int32
+	escapeH int32
+
 	cursorVisible bool
 	blink         uint64
 
@@ -198,9 +202,11 @@ func (g *StartGame) LoadMedia() error {
 	//titleFont, _ := g.LoadFont(80)
 	newGameFont, _ := g.LoadFont(50)
 	insertFont, _ := g.LoadFont(30)
+	exitFont, _ := g.LoadFont(20)
 	defer titleFont.Close()
 	defer newGameFont.Close()
 	defer insertFont.Close()
+	defer exitFont.Close()
 	//kreiramo tekst u sliku koju zelimo da nacrtamo
 
 	titleSurf, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 72, G: 43, B: 6, A: 255})
@@ -212,7 +218,7 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
-	newGameSurf, err := newGameFont.RenderUTF8Blended("New game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	newGameSurf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
@@ -222,10 +228,16 @@ func (g *StartGame) LoadMedia() error {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
 
+	exitSurf, err := exitFont.RenderUTF8Blended("Press esc to exit game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	if err != nil {
+		return fmt.Errorf("error loading font surface%v\n", err)
+	}
+
 	defer titleSurf.Free()
 	defer titleSurf2.Free()
 	defer newGameSurf.Free()
 	defer insertNameSurf.Free()
+	defer exitSurf.Free()
 
 	//prikaz
 	g.titleTexture, err = g.Renderer.CreateTextureFromSurface(titleSurf)
@@ -244,6 +256,10 @@ func (g *StartGame) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font texture from surface%v\n", err)
 	}
+	g.escape, err = g.Renderer.CreateTextureFromSurface(exitSurf)
+	if err != nil {
+		return fmt.Errorf("error loading font texture from surface%v\n", err)
+	}
 
 	//izvlacenje podataka za naslov i podnaslov
 	_, _, g.titleW, g.titleH, err = g.titleTexture.Query()
@@ -253,12 +269,17 @@ func (g *StartGame) LoadMedia() error {
 
 	_, _, g.newGameW, g.newGameH, err = g.newGameTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading title query %v\n", err)
+		return fmt.Errorf("error loading newgame query %v\n", err)
 	}
 
 	_, _, g.insertNameW, g.insertNameH, err = g.insertNameTexture.Query()
 	if err != nil {
 		return fmt.Errorf("error loading insert query %v\n", err)
+	}
+
+	_, _, g.escapeW, g.escapeH, err = g.escape.Query()
+	if err != nil {
+		return fmt.Errorf("error loading exit query %v\n", err)
 	}
 
 	//obicna dugmad
@@ -299,6 +320,8 @@ func (g *StartGame) Close() {
 		g.titleTexture = nil
 		g.title2Texture.Destroy()
 		g.title2Texture = nil
+		g.escape.Destroy()
+		g.escape = nil
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
@@ -481,6 +504,12 @@ func (g *StartGame) Run() ScreenID {
 			W: tw,
 			H: th,
 		})
+
+		g.Renderer.Copy(g.escape, nil, &sdl.Rect{
+			X: (WindowWidth - g.newGameW) / 2 + 40,
+			Y: (WindowHeight- g.newGameH)/ 2 + 290 ,
+			W: g.escapeW,
+			H: g.escapeH})
 
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
