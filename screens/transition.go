@@ -58,8 +58,8 @@ func NewTransition(game *Game, next ScreenID, circle string, level int, name str
 
 func (g *Transition) LoadMedia() error {
 	var err error
-	transitionFont, _ := g.LoadFont(60)
-	transitionSubFont, _ := g.LoadFont(30)
+	transitionFont, _ := g.LoadFont(50)
+	transitionSubFont, _ := g.LoadFont(25)
 	defer transitionFont.Close()
 	defer transitionSubFont.Close()
 
@@ -148,14 +148,14 @@ func (g *Transition) Run() ScreenID {
 
 		g.Renderer.Copy(g.transitionTextTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.tW) / 2,
-			Y: (WindowHeight- g.tH)/2 - 70,
+			Y: (WindowHeight- g.tH)/2,
 			W: g.tW,
 			H: g.tH,
 		})
 
 		g.Renderer.Copy(g.transitionSubtextTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.tsW) / 2,
-			Y: (WindowHeight - g.tsH) / 2,
+			Y: (WindowHeight - g.tsH) / 2+60,
 			W: g.tsW,
 			H: g.tsH,
 		})
