@@ -19,7 +19,7 @@ const (
 
 type Screen interface {
 	LoadMedia() error
-	Run() ScreenID // vraca true/false za prelaz na sledeci ekran
+	Run() ScreenID // vraca prelaz na sledeci ekran
 	Close()
 }
 
@@ -341,6 +341,16 @@ func (g *StartGame) Close() {
 		g.bottomTextEscTexture = nil
 		g.bottomTextEnterTexture.Destroy()
 		g.bottomTextEnterTexture = nil
+
+		g.playButton.texture.Destroy()
+		g.playButton.texture = nil
+		g.playHoverButton.texture.Destroy()
+		g.playHoverButton.texture = nil
+		g.scoreButton.texture.Destroy()
+		g.scoreButton.texture = nil
+		g.scoreHoverButton.texture.Destroy()
+		g.scoreHoverButton.texture = nil
+		
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}

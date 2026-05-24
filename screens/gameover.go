@@ -162,13 +162,11 @@ func (g *GameOver) Run() ScreenID{
 
 		//g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
 		
-		w := g.screenTextW
-		h := g.screenTextH
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight- h)/2,
-			W: w,
-			H: h})
+			X: (WindowWidth - g.screenTextW) / 2,
+			Y: (WindowHeight- g.screenTextH)/2,
+			W: g.screenTextW,
+			H: g.screenTextH})
 
 		g.Renderer.Copy(g.smiley, nil, &sdl.Rect{
 		X: (WindowWidth - g.smileyW) / 2,
@@ -204,11 +202,6 @@ func (g *GameOver) Run() ScreenID{
 			W: tw,
 			H: th,
 		})
-		/*
-		if g.tryAgainButton.isClicked(mouseX, mouseY){
-			return true  // prelaz na sledeći ekran
-		}
-		*/
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}
@@ -225,15 +218,15 @@ func (g *GameOver) Close() {
 		g.blur.Destroy()
 		g.blur = nil
 
+		g.tryAgainButton.texture.Destroy()
+		g.tryAgainButton.texture = nil
+		g.tryAgainHoverButton.texture.Destroy()
+		g.tryAgainHoverButton.texture = nil
+
+		g.smiley.Destroy()
+		g.smiley = nil
+
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
-
-		/*
-		g.Renderer.Destroy()
-		g.Renderer = nil
-
-		g.Window.Destroy()
-		g.Window = nil
-		*/
 	}
 }

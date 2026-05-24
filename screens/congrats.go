@@ -144,6 +144,15 @@ func (g *Congrats) Close() {
 		g.uWonTexture.Destroy()
 		g.uWonTexture = nil
 
+		g.playAgainButton.texture.Destroy()
+		g.playAgainButton.texture = nil
+		g.playAgainHoverButton.texture.Destroy()
+		g.playAgainHoverButton.texture = nil
+		g.scoreButton.texture.Destroy()
+		g.scoreButton.texture = nil
+		g.scoreHoverButton.texture.Destroy()
+		g.scoreHoverButton.texture = nil
+
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
@@ -186,23 +195,18 @@ func (g *Congrats) Run() ScreenID {
 
 		//g.Renderer.Copy(g.BackgroundImage, nil, nil) 
 
-		w := g.screenTextW
-		h := g.screenTextH
 
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight-h)/2,
-			W: w,
-			H: h})
-
-		w = g.uWonW
-		h = g.uWonH
+			X: (WindowWidth -g.screenTextW) / 2,
+			Y: (WindowHeight-g.screenTextH)/2,
+			W: g.screenTextW,
+			H: g.screenTextH})
 
 		g.Renderer.Copy(g.uWonTexture, nil, &sdl.Rect{
-			X: (WindowWidth - w) / 2,
-			Y: (WindowHeight - h) / 2 +70,
-			W: w,
-			H: h,
+			X: (WindowWidth - g.uWonW) / 2,
+			Y: (WindowHeight - g.uWonH) / 2 +70,
+			W: g.uWonW,
+			H: g.uWonH,
 		})
 
 		mouseX, mouseY, _ := sdl.GetMouseState()
@@ -234,11 +238,6 @@ func (g *Congrats) Run() ScreenID {
 			W: tw,
 			H: th,
 		})
-		/*
-			if g.tryAgainButton.isClicked(mouseX, mouseY){
-				return true  // prelaz na sledeći ekran
-			}
-		*/
 
 		//SCORE
 		if g.scoreButton.hovered {
