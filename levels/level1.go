@@ -3,9 +3,9 @@ package levels
 import (
 	"fmt"
 
-	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
+	"github.com/veandco/go-sdl2/sdl"
 
 	//"2026_Bozanstveni-pekar/screens"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
@@ -15,17 +15,21 @@ type Level1 struct {
 	*screens.Game
 	screens.BaseGame
 
-	dante *sdl.Texture
+	dante  *sdl.Texture
 	danteW int32
 	danteH int32
 
-	goodTunnel *sdl.Texture
+	goodTunnel  *sdl.Texture
 	goodTunnelW int32
 	goodTunnelH int32
 
-	badTunnel *sdl.Texture
+	badTunnel  *sdl.Texture
 	badTunnelW int32
 	badTunnelH int32
+
+	verticalPath  *sdl.Texture
+	verticalPathW int32
+	verticalPathH int32
 }
 
 func NewLevel1(game *screens.Game) *Level1 {
@@ -34,7 +38,7 @@ func NewLevel1(game *screens.Game) *Level1 {
 	}
 }
 
-func (g *Level1) LoadMedia() error{
+func (g *Level1) LoadMedia() error {
 	var err error
 	g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Game.Renderer, "images/lvl1.png")
 	if err != nil {
@@ -45,7 +49,7 @@ func (g *Level1) LoadMedia() error{
 
 	//_, _, danteW, danteH, err = g.dante.Query()
 
-	if err!=nil {
+	if err != nil {
 		return err
 	}
 
@@ -55,8 +59,11 @@ func (g *Level1) LoadMedia() error{
 	BadTunnelTexture, err := img.LoadTexture(g.Game.Renderer, "images/badTunnel.png")
 	g.badTunnel = BadTunnelTexture
 
+	verticalPathTexture, err := img.LoadTexture(g.Game.Renderer, "images/VertikalniPut.png")
+	g.verticalPath = verticalPathTexture
+
 	g.Music, err = mix.LoadMUS("music/spaceroad.mp3")
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error loading music %v\n", err)
 	}
 
@@ -68,7 +75,7 @@ func (g *Level1) LoadMedia() error{
 }
 
 func (g *Level1) Close() {
-	if g!=nil {
+	if g != nil {
 
 		mix.HaltMusic()
 		mix.HaltChannel(-1)
@@ -80,6 +87,8 @@ func (g *Level1) Close() {
 		g.goodTunnel = nil
 		g.badTunnel.Destroy()
 		g.badTunnel = nil
+		g.verticalPath.Destroy()
+		g.verticalPath = nil
 	}
 }
 
@@ -98,32 +107,48 @@ func (g *Level1) Run() screens.ScreenID {
 				}
 			}
 		}
-		g.Game.Renderer.Clear()                          
+		g.Game.Renderer.Clear()
 		g.Game.Renderer.Copy(g.BaseGame.BackgroundImage, nil, nil)
 
+		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+			X: 82, Y: 1, W: 32, H: 580,
+		})
+
+		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+			X: 257, Y: 1, W: 32, H: 580,
+		})
+
+		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+			X: 457, Y: 1, W: 32, H: 580,
+		})
+
+		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+			X: 672, Y: 1, W: 32, H: 580,
+		})
+
 		g.Game.Renderer.Copy(g.dante, nil, &sdl.Rect{
-			X:50,Y:10,W:60,H:60,
+			X: 66, Y: 10, W: 60, H: 60,
 		})
 
-		g.Game.Renderer.Copy(g.goodTunnel,nil,&sdl.Rect{
-			X:50,Y:500,W:105,H:105,
+		g.Game.Renderer.Copy(g.goodTunnel, nil, &sdl.Rect{
+			X: 50, Y: 500, W: 105, H: 105,
 		})
 
-		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
-			X:225,Y:500,W:100,H:100,
+		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+			X: 225, Y: 500, W: 100, H: 100,
 		})
 
-		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
-			X:425,Y:500,W:100,H:100,
+		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+			X: 425, Y: 500, W: 100, H: 100,
 		})
 
-		g.Game.Renderer.Copy(g.badTunnel,nil,&sdl.Rect{
-			X:650,Y:500,W:100,H:100,
+		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+			X: 640, Y: 500, W: 100, H: 100,
 		})
 
 		g.Game.Renderer.Present()
 		sdl.Delay(16)
-		
+
 	}
 	return screens.Level2Screen
 }
