@@ -12,13 +12,30 @@ import (
 	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
 )
 
+// sadrzi podatke o danteu
+type Dante struct {
+	tekstura *sdl.Texture
+	w        int32
+	h        int32
+	x        float64
+	y        float64
+	brzina   float64
+
+	naKosomPutu bool
+	trenutniPut *IzgradjeniPut
+
+	ciljX float64
+	ciljY float64
+
+	poslednjiPut *IzgradjeniPut
+}
+
 type Level1 struct {
 	*screens.Game
 	screens.BaseGame
 
-	dante  *sdl.Texture
-	danteW int32
-	danteH int32
+	//struktura koja sadrzi sve podatke o danteu
+	dante Dante
 
 	goodTunnel  *sdl.Texture
 	goodTunnelW int32
@@ -36,6 +53,13 @@ type Level1 struct {
 func NewLevel1(game *screens.Game) *Level1 {
 	return &Level1{
 		Game: game,
+		dante: Dante{
+			x:      82 + 16,
+			y:      10,
+			brzina: 1,
+			w:      60,
+			h:      60,
+		},
 	}
 }
 
@@ -46,7 +70,7 @@ func (g *Level1) LoadMedia() error {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
 	DanteTexture, err := img.LoadTexture(g.Game.Renderer, "images/Dante.png")
-	g.dante = DanteTexture
+	g.dante.tekstura = DanteTexture
 
 	//_, _, danteW, danteH, err = g.dante.Query()
 
@@ -82,8 +106,8 @@ func (g *Level1) Close() {
 		mix.HaltChannel(-1)
 		g.Music.Free()
 		g.Music = nil
-		g.dante.Destroy()
-		g.dante = nil
+		g.dante.tekstura.Destroy()
+		g.dante.tekstura = nil
 		g.goodTunnel.Destroy()
 		g.goodTunnel = nil
 		g.badTunnel.Destroy()
@@ -97,6 +121,9 @@ type IzgradjeniPut struct {
 	centerX, centerY       int32
 	sirinaPuta, visinaPuta int32
 	ugao                   float64
+
+	X1, Y1 int32 // pocetak kosog puta (gde klikne)
+	X2, Y2 int32 // kraj
 }
 
 // Pomocna struktura za pravljenje kosih puteva, broji kliktaje na vertikalnim putevima
@@ -201,6 +228,80 @@ func (g *Level1) DozvoljenoSpajanje(click1X, click2X int32) bool {
 	return false
 }
 
+func (g *Level1) PomeriDantea(putevi []IzgradjeniPut) {
+	// na kosom putu -> pomeraj ka ciljnoj tacki
+	if g.dante.naKosomPutu {
+
+		//izracuna pravac, normalizuje vektor, pomnozi ga sa brzinom i to doda na poziciju
+		dx := g.dante.ciljX - g.dante.x
+		dy := g.dante.ciljY - g.dante.y
+		duzina := math.Sqrt(dx*dx + dy*dy)
+
+		if duzina > 0 {
+			g.dante.x += (dx / duzina) * g.dante.brzina
+			g.dante.y += (dy / duzina) * g.dante.brzina
+		}
+
+		// ako je u blizini cilja
+		if math.Abs(g.dante.y-g.dante.ciljY) < 1 && math.Abs(g.dante.x-g.dante.ciljX) < 1 {
+
+			// zapamti put da bi ga ignorisali sledeci put da se ne bi vracao nazad istim putem
+			g.dante.poslednjiPut = g.dante.trenutniPut
+
+			g.dante.naKosomPutu = false
+			g.dante.trenutniPut = nil
+
+			// pomeri ga na dole za svaki slucaj da ne krene opet na isti put
+			g.dante.y += g.dante.brzina
+		}
+		return
+	}
+
+	// prodji kroz sve staze i proveri na kojoj se nalazimo
+	for i := range putevi {
+		p := &putevi[i]
+
+		// ako smo naisli na stari put, ignorisi ga
+		if g.dante.poslednjiPut == p {
+			continue
+		}
+
+		//dve provere: jedna ako prilazi sa jedne, a druga ako prilazi sa druge strane puta
+		//PROVERA 1
+		if math.Abs(float64(p.X1)-g.dante.x) < 1 && math.Abs(float64(p.Y1)-g.dante.y) < 2 && g.dante.y < float64(p.Y1) {
+			g.dante.poslednjiPut = nil
+			g.dante.naKosomPutu = true
+			g.dante.trenutniPut = p
+			g.dante.ciljX = float64(p.X2)
+			g.dante.ciljY = float64(p.Y2)
+			return
+		}
+		//PROVERA 2
+		if math.Abs(float64(p.X2)-g.dante.x) < 1 && math.Abs(float64(p.Y2)-g.dante.y) < 2 && g.dante.y < float64(p.Y2) {
+			g.dante.poslednjiPut = nil
+			g.dante.naKosomPutu = true
+			g.dante.trenutniPut = p
+			g.dante.ciljX = float64(p.X1)
+			g.dante.ciljY = float64(p.Y1)
+			return
+		}
+
+	}
+
+	//ako zaobidje sve ifove, treba da se krece samo na dole
+	g.dante.y += g.dante.brzina
+}
+
+func (g *Level1) CentarVertPuta(clickX int32) int32 {
+	for _, opseg := range g.OpsegVertikalnih {
+		if Unutra(clickX, opseg.X, opseg.W) {
+			// centar vert puta
+			return opseg.X + (opseg.W / 2)
+		}
+	}
+	return clickX //ne bi trebalo da dodje do ovde
+}
+
 func (g *Level1) Run() screens.ScreenID {
 	horizontalPaths := []IzgradjeniPut{}
 	var klik Kliknut
@@ -222,6 +323,15 @@ func (g *Level1) Run() screens.ScreenID {
 					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
 					case sdl.SCANCODE_ESCAPE: //esc
 						return screens.ExitScreen
+					case sdl.SCANCODE_R:
+						horizontalPaths = []IzgradjeniPut{}
+						g.dante.x = 82 + 16
+						g.dante.y = 10
+						g.dante.ciljX = g.dante.x
+						g.dante.ciljY = g.dante.y
+						g.dante.naKosomPutu = false
+						g.dante.trenutniPut = nil
+						g.dante.poslednjiPut = nil
 					}
 				}
 
@@ -248,6 +358,7 @@ func (g *Level1) Run() screens.ScreenID {
 				}
 			}
 		}
+
 		g.Game.Renderer.Clear()
 		g.Game.Renderer.Copy(g.BaseGame.BackgroundImage, nil, nil)
 
@@ -289,14 +400,45 @@ func (g *Level1) Run() screens.ScreenID {
 
 		}
 		if klik.kliknuto2 == true {
-			g.Game.Renderer.SetDrawColor(255, 0, 0, 255) // crvena
-			g.nacrtajKrug(klik.klik2x, klik.klik2y)      //g.Game.Renderer.DrawPoint(klik.klik2x, klik.klik2y)
 
-			cX, cY, sp, vp, u := g.NacrtajPut(klik.klik1x, klik.klik1y, klik.klik2x, klik.klik2y)
+			centriranX1 := g.CentarVertPuta(klik.klik1x)
+			centriranX2 := g.CentarVertPuta(klik.klik2x)
 
-			horizontalPaths = append(horizontalPaths, IzgradjeniPut{
-				centerX: cX, centerY: cY, sirinaPuta: sp, visinaPuta: vp, ugao: u,
-			})
+			flagDaLiDodatiPut := true
+
+			for i := range horizontalPaths {
+				p := horizontalPaths[i]
+
+				//ako put koji hocemo da dodamo i trenutni put iz niza spajaju iste cevi
+				//brojevi 1 i 2 u X1 i X2 samo oznacavaju koji je prvi pritisnut tkd moramo da proverimo obe kombinacije
+
+				if centriranX1 == p.X1 && centriranX2 == p.X2 {
+					// ako se putevi seku: zabrani dodavanje
+					if (klik.klik1y < p.Y1 && klik.klik2y > p.Y2) || (klik.klik1y > p.Y1 && klik.klik2y < p.Y2) {
+						flagDaLiDodatiPut = false
+						break
+					}
+				} else if centriranX1 == p.X2 && centriranX2 == p.X1 { // druga kombinacija
+					// ako se putevi seku: zabrani dodavanje
+					if (klik.klik1y < p.Y2 && klik.klik2y > p.Y1) || (klik.klik1y > p.Y2 && klik.klik2y < p.Y1) {
+						flagDaLiDodatiPut = false
+						break
+					}
+				}
+			}
+
+			if flagDaLiDodatiPut == true {
+				g.Game.Renderer.SetDrawColor(255, 0, 0, 255) // crvena
+				g.nacrtajKrug(klik.klik2x, klik.klik2y)      //g.Game.Renderer.DrawPoint(klik.klik2x, klik.klik2y)
+
+				cX, cY, sp, vp, u := g.NacrtajPut(centriranX1, klik.klik1y, centriranX2, klik.klik2y)
+
+				horizontalPaths = append(horizontalPaths, IzgradjeniPut{
+					centerX: cX, centerY: cY, sirinaPuta: sp, visinaPuta: vp, ugao: u,
+					X1: centriranX1, Y1: klik.klik1y, // koord prve tacke
+					X2: centriranX2, Y2: klik.klik2y, // koord druge tacke
+				})
+			}
 
 			klik.brKlikova = 0
 			klik.kliknuto1 = false
@@ -305,8 +447,13 @@ func (g *Level1) Run() screens.ScreenID {
 
 		g.RenderujKosePuteve(horizontalPaths)
 
-		g.Game.Renderer.Copy(g.dante, nil, &sdl.Rect{
-			X: 66, Y: 10, W: 60, H: 60,
+		g.PomeriDantea(horizontalPaths)
+
+		g.Game.Renderer.Copy(g.dante.tekstura, nil, &sdl.Rect{
+			X: int32(g.dante.x) - g.dante.w/2,
+			Y: int32(g.dante.y) - g.dante.h/2,
+			W: g.dante.w,
+			H: g.dante.h,
 		})
 
 		g.Game.Renderer.Present()

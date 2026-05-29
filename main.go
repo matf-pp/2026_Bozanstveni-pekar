@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/veandco/go-sdl2/img"
+	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
-	"github.com/veandco/go-sdl2/mix"
 
 	"github.com/matf-pp/2026_Bozanstveni-pekar/levels"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
@@ -34,7 +34,7 @@ func initSDL() error {
 	if err := mix.Init(mixFlags); err != nil {
 		return fmt.Errorf("Error init sdl mix %v", err)
 	}
-	if err := mix.OpenAudio(mix.DEFAULT_FREQUENCY,mix.DEFAULT_FORMAT, mix.DEFAULT_CHANNELS, mix.DEFAULT_CHUNKSIZE); err != nil {
+	if err := mix.OpenAudio(mix.DEFAULT_FREQUENCY, mix.DEFAULT_FORMAT, mix.DEFAULT_CHANNELS, mix.DEFAULT_CHUNKSIZE); err != nil {
 		return fmt.Errorf("Error init sdl openaudio %v", err)
 	}
 	return nil
