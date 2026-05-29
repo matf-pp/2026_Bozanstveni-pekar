@@ -38,21 +38,19 @@ type Level1 struct {
 	//struktura koja sadrzi sve podatke o danteu
 	dante Dante
 
-	goodTunnel    *sdl.Texture
-	goodTunnelW   int32
-	goodTunnelH   int32
-	goodTunnelPos sdl.Rect
+	goodTunnel *sdl.Texture
 
 	//koliko puta je dante stigao u dobar tunel (score)
 	brojacDobrihTunela int32
 
-	badTunnel  *sdl.Texture
-	badTunnelW int32
-	badTunnelH int32
+	badTunnel *sdl.Texture
 
 	verticalPath *sdl.Texture
 
 	OpsegVertikalnih [4]sdl.Rect
+
+	OpsegTunela   [4]int32
+	goodTunnelPos sdl.Rect
 
 	//da bi izbegli situaciju gde dante preskoci tunel jer se krece previse brzo, ubrzavacemo igraca tako sto povecamo framerate
 	//ovo je tako zato sto je igrica dovoljno prosta da moze da radi brzo cak i na mom core 2 duo i radeon HD ???? grafickoj
@@ -84,8 +82,6 @@ func (g *Level1) LoadMedia() error {
 	}
 	DanteTexture, err := img.LoadTexture(g.Game.Renderer, "images/Dante.png")
 	g.dante.tekstura = DanteTexture
-
-	//_, _, danteW, danteH, err = g.dante.Query()
 
 	if err != nil {
 		return err
@@ -334,8 +330,10 @@ func (g *Level1) Run() screens.ScreenID {
 		{X: 672, Y: 0, W: 32, H: 580},
 	}
 
-	// HARDkodovana pozicija good tunela
-	g.goodTunnelPos = sdl.Rect{X: 50, Y: 500, W: 105, H: 105}
+	g.OpsegTunela = [4]int32{50, 225, 425, 640}
+	indeksiTunel := rand.Perm(4) //randomizovanje tunela
+	g.goodTunnelPos = sdl.Rect{
+		X: g.OpsegTunela[indeksiTunel[0]], Y: 500, W: 105, H: 105}
 
 	g.dante.x = g.RandomStartX()
 	g.dante.y = 10
@@ -410,19 +408,18 @@ func (g *Level1) Run() screens.ScreenID {
 			X: 672, Y: 0, W: 32, H: 580,
 		})
 
-		//renderuj good tunnel na goodTunnelPos sto je trenutno hardcodeovano iznad na beljinu vrednost od ranije
 		g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: 225, Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[1]], Y: 500, W: 100, H: 100,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: 425, Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[2]], Y: 500, W: 100, H: 100,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: 640, Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[3]], Y: 500, W: 100, H: 100,
 		})
 
 		if klik.kliknuto1 == true {
@@ -486,13 +483,12 @@ func (g *Level1) Run() screens.ScreenID {
 		if int32(g.dante.x) >= tunel.X && int32(g.dante.x) <= (tunel.X+tunel.W) && int32(g.dante.y) >= tunel.Y {
 			// stigao u dobar tunel -> uvecamo score
 			g.brojacDobrihTunela++
+			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
 
 			//breakuje petlju da bi otisao na drugi nivo jer ispod petlje pise retunr nesto nesto level2
 			if g.brojacDobrihTunela == 5 {
 				break
 			}
-
-			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
 
 			//vrati dantea u random tunel na vrh i resetuj sve ove gluposti
 			g.dante.x = g.RandomStartX()
