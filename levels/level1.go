@@ -47,6 +47,8 @@ type Level1 struct {
 
 	verticalPath *sdl.Texture
 
+	krug *sdl.Texture
+
 	OpsegVertikalnih [4]sdl.Rect
 
 	OpsegTunela   [4]int32
@@ -96,6 +98,9 @@ func (g *Level1) LoadMedia() error {
 	verticalPathTexture, err := img.LoadTexture(g.Game.Renderer, "images/VertikalniPut.png")
 	g.verticalPath = verticalPathTexture
 
+	krugTexture, err := img.LoadTexture(g.Game.Renderer, "images/krug.png")
+	g.krug = krugTexture
+
 	g.Music, err = mix.LoadMUS("music/spaceroad.mp3")
 	if err != nil {
 		return fmt.Errorf("error loading music %v\n", err)
@@ -123,6 +128,8 @@ func (g *Level1) Close() {
 		g.badTunnel = nil
 		g.verticalPath.Destroy()
 		g.verticalPath = nil
+		g.krug.Destroy()
+		g.krug = nil
 	}
 }
 
@@ -146,33 +153,6 @@ type Kliknut struct {
 	kliknuto2 bool
 
 	brKlikova int32
-}
-
-// funkcija koja crta krug - Midpoint Circle Algorithm
-func (g *Level1) nacrtajKrug(pikselX int32, pikselY int32) {
-	x := int32(8)
-	y := int32(0)
-	t := int32(0)
-	g.Game.Renderer.DrawPoint(pikselX, pikselY)
-	for x >= y {
-		g.Game.Renderer.DrawPoint(pikselX+x, pikselY+y)
-		g.Game.Renderer.DrawPoint(pikselX+y, pikselY+x)
-		g.Game.Renderer.DrawPoint(pikselX-y, pikselY+x)
-		g.Game.Renderer.DrawPoint(pikselX-x, pikselY+y)
-		g.Game.Renderer.DrawPoint(pikselX-x, pikselY-y)
-		g.Game.Renderer.DrawPoint(pikselX-y, pikselY-x)
-		g.Game.Renderer.DrawPoint(pikselX+y, pikselY-x)
-		g.Game.Renderer.DrawPoint(pikselX+x, pikselY-y)
-
-		if t <= 0 {
-			y++
-			t += 2*y + 1
-		}
-		if t > 0 {
-			x--
-			t -= 2*x + 1
-		}
-	}
 }
 
 func (g *Level1) NacrtajPut(x1, y1, x2, y2 int32) (int32, int32, int32, int32, float64) {
@@ -423,9 +403,9 @@ func (g *Level1) Run() screens.ScreenID {
 		})
 
 		if klik.kliknuto1 == true {
-			g.Game.Renderer.SetDrawColor(255, 0, 0, 255) // crvena
-			g.nacrtajKrug(klik.klik1x, klik.klik1y)      //g.Game.Renderer.DrawPoint(klik.klik1x, klik.klik1y)
-
+			g.Game.Renderer.Copy(g.krug, nil, &sdl.Rect{
+				X: klik.klik1x - 8, Y: klik.klik1y - 8, W: 15, H: 15,
+			})
 		}
 		if klik.kliknuto2 == true {
 
@@ -456,8 +436,9 @@ func (g *Level1) Run() screens.ScreenID {
 			}
 
 			if flagDaLiDodatiPut == true {
-				g.Game.Renderer.SetDrawColor(255, 0, 0, 255) // crvena
-				g.nacrtajKrug(klik.klik2x, klik.klik2y)      //g.Game.Renderer.DrawPoint(klik.klik2x, klik.klik2y)
+				g.Game.Renderer.Copy(g.krug, nil, &sdl.Rect{
+					X: klik.klik1x - 8, Y: klik.klik1y - 8, W: 15, H: 15,
+				})
 
 				cX, cY, sp, vp, u := g.NacrtajPut(centriranX1, klik.klik1y, centriranX2, klik.klik2y)
 
