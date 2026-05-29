@@ -3,6 +3,7 @@ package levels
 import (
 	"fmt"
 	"math"
+	"math/rand/v2"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
@@ -37,9 +38,13 @@ type Level1 struct {
 	//struktura koja sadrzi sve podatke o danteu
 	dante Dante
 
-	goodTunnel  *sdl.Texture
-	goodTunnelW int32
-	goodTunnelH int32
+	goodTunnel    *sdl.Texture
+	goodTunnelW   int32
+	goodTunnelH   int32
+	goodTunnelPos sdl.Rect
+
+	//koliko puta je dante stigao u dobar tunel (score)
+	brojacDobrihTunela int32
 
 	badTunnel  *sdl.Texture
 	badTunnelW int32
@@ -48,6 +53,11 @@ type Level1 struct {
 	verticalPath *sdl.Texture
 
 	OpsegVertikalnih [4]sdl.Rect
+
+	//da bi izbegli situaciju gde dante preskoci tunel jer se krece previse brzo, ubrzavacemo igraca tako sto povecamo framerate
+	//ovo je tako zato sto je igrica dovoljno prosta da moze da radi brzo cak i na mom core 2 duo i radeon HD ???? grafickoj
+	//a pametnije resenje bi zahtevalo mnogo vremena i vrv ponovno pisanje logike za puteve
+	frameTime uint32
 }
 
 func NewLevel1(game *screens.Game) *Level1 {
@@ -60,6 +70,9 @@ func NewLevel1(game *screens.Game) *Level1 {
 			w:      60,
 			h:      60,
 		},
+		//pocetni framerate ~ 60 = (1/0.016)
+		//framerate = 1/frameTime
+		frameTime: 16,
 	}
 }
 
@@ -302,6 +315,14 @@ func (g *Level1) CentarVertPuta(clickX int32) int32 {
 	return clickX //ne bi trebalo da dodje do ovde
 }
 
+func (g *Level1) RandomStartX() float64 {
+
+	brPuta := rand.N(len(g.OpsegVertikalnih))
+
+	// stavlja ga na x koord puta (+16 jer je to polovina sirine puta)
+	return float64(g.OpsegVertikalnih[brPuta].X + 16)
+}
+
 func (g *Level1) Run() screens.ScreenID {
 	horizontalPaths := []IzgradjeniPut{}
 	var klik Kliknut
@@ -312,6 +333,17 @@ func (g *Level1) Run() screens.ScreenID {
 		{X: 457, Y: 0, W: 32, H: 580},
 		{X: 672, Y: 0, W: 32, H: 580},
 	}
+
+	// HARDkodovana pozicija good tunela
+	g.goodTunnelPos = sdl.Rect{X: 50, Y: 500, W: 105, H: 105}
+
+	g.dante.x = g.RandomStartX()
+	g.dante.y = 10
+	g.dante.ciljX = g.dante.x
+	g.dante.ciljY = g.dante.y
+	g.dante.naKosomPutu = false
+	g.dante.trenutniPut = nil
+	g.dante.poslednjiPut = nil
 
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -325,7 +357,7 @@ func (g *Level1) Run() screens.ScreenID {
 						return screens.ExitScreen
 					case sdl.SCANCODE_R:
 						horizontalPaths = []IzgradjeniPut{}
-						g.dante.x = 82 + 16
+						g.dante.x = g.RandomStartX()
 						g.dante.y = 10
 						g.dante.ciljX = g.dante.x
 						g.dante.ciljY = g.dante.y
@@ -378,9 +410,8 @@ func (g *Level1) Run() screens.ScreenID {
 			X: 672, Y: 0, W: 32, H: 580,
 		})
 
-		g.Game.Renderer.Copy(g.goodTunnel, nil, &sdl.Rect{
-			X: 50, Y: 500, W: 105, H: 105,
-		})
+		//renderuj good tunnel na goodTunnelPos sto je trenutno hardcodeovano iznad na beljinu vrednost od ranije
+		g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
 			X: 225, Y: 500, W: 100, H: 100,
@@ -449,6 +480,45 @@ func (g *Level1) Run() screens.ScreenID {
 
 		g.PomeriDantea(horizontalPaths)
 
+		tunel := g.goodTunnelPos
+
+		// ova provera za kolizuju je vljd dovoljno precizna
+		if int32(g.dante.x) >= tunel.X && int32(g.dante.x) <= (tunel.X+tunel.W) && int32(g.dante.y) >= tunel.Y {
+			// stigao u dobar tunel -> uvecamo score
+			g.brojacDobrihTunela++
+
+			//breakuje petlju da bi otisao na drugi nivo jer ispod petlje pise retunr nesto nesto level2
+			if g.brojacDobrihTunela == 5 {
+				break
+			}
+
+			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
+
+			//vrati dantea u random tunel na vrh i resetuj sve ove gluposti
+			g.dante.x = g.RandomStartX()
+			g.dante.y = 10
+			g.dante.ciljX = g.dante.x
+			g.dante.ciljY = g.dante.y
+			g.dante.naKosomPutu = false
+			g.dante.trenutniPut = nil
+			g.dante.poslednjiPut = nil
+
+			// neka vrednost za ubrzavanje igraca koja radi dobro
+			// smanji na 2 ili 1 ako mislite da je previse brzo
+			g.frameTime -= 3
+
+			continue
+		}
+
+		// provera da li je umro, odnosno da li se nalazi ispod dobrog tunela, a nije usao u njega
+		if int32(g.dante.y) >= tunel.Y+tunel.H/2 {
+			fmt.Println("umro")
+
+			g.brojacDobrihTunela = 0
+
+			return screens.GameOverScreen
+		}
+
 		g.Game.Renderer.Copy(g.dante.tekstura, nil, &sdl.Rect{
 			X: int32(g.dante.x) - g.dante.w/2,
 			Y: int32(g.dante.y) - g.dante.h/2,
@@ -457,7 +527,7 @@ func (g *Level1) Run() screens.ScreenID {
 		})
 
 		g.Game.Renderer.Present()
-		sdl.Delay(16)
+		sdl.Delay(g.frameTime)
 
 	}
 	return screens.Level2Screen
