@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/veandco/go-sdl2/img"
-	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/mix"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Congrats struct {
@@ -24,10 +24,7 @@ type Congrats struct {
 	playAgainButton      Button
 	playAgainHoverButton Button
 
-	scoreButton      Button
-	scoreHoverButton Button
-
-	blur *sdl.Texture
+	blur    *sdl.Texture
 	snapped bool
 }
 
@@ -37,26 +34,26 @@ func NewCongrats(game *Game) *Congrats {
 	}
 }
 
-//argument metode - (scene *sdl.Texture)
+// argument metode - (scene *sdl.Texture)
 func (g *Congrats) CreateBlur() error {
-    var err error
+	var err error
 
-    g.blur, err = g.Renderer.CreateTexture(
-        sdl.PIXELFORMAT_RGBA8888,
-        sdl.TEXTUREACCESS_TARGET,
-        120,
-        90,
-    )
-    if err != nil {
-        return err
-    }
+	g.blur, err = g.Renderer.CreateTexture(
+		sdl.PIXELFORMAT_RGBA8888,
+		sdl.TEXTUREACCESS_TARGET,
+		120,
+		90,
+	)
+	if err != nil {
+		return err
+	}
 
-    g.Renderer.SetRenderTarget(g.blur)
+	g.Renderer.SetRenderTarget(g.blur)
 	//g.Renderer.Clear()
-    g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
-    g.Renderer.SetRenderTarget(nil)
+	g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
+	g.Renderer.SetRenderTarget(nil)
 
-    return nil
+	return nil
 }
 
 func (g *Congrats) LoadMedia() error {
@@ -110,30 +107,18 @@ func (g *Congrats) LoadMedia() error {
 
 	//obicna dugmad
 	g.playAgainButton, err = g.LoadButton(
-		"images/button.png", 200, 300, 200, 200,
+		"images/button.png", 300, 300, 200, 200,
 	)
 	g.SetButtonText(&g.playAgainButton, "play again", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
-	g.scoreButton, err = g.LoadButton(
-		"images/button.png", 400, 300, 200, 200,
-	)
-	g.SetButtonText(&g.scoreButton, "score", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playAgainHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 200, 300, 200, 200,
+		"images/buttonHover.png", 300, 300, 200, 200,
 	)
 	g.SetButtonText(&g.playAgainHoverButton, "play again", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
 	g.playAgainButton.hoverTexture = g.playAgainHoverButton.texture
 	g.playAgainButton.hoverTextTexture = g.playAgainHoverButton.textBtnTexture
-
-	g.scoreHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 400, 300, 200, 200,
-	)
-	g.SetButtonText(&g.scoreHoverButton, "score", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
-
-	g.scoreButton.hoverTexture = g.scoreHoverButton.texture
-	g.scoreButton.hoverTextTexture = g.scoreHoverButton.textBtnTexture
 
 	err = g.CreateBlur()
 	if err != nil {
@@ -141,12 +126,12 @@ func (g *Congrats) LoadMedia() error {
 	}
 
 	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error loading chunk %v\n", err)
 	}
 
 	g.Music, err = mix.LoadMUS("sounds/win.mp3")
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error loading music %v\n", err)
 	}
 
@@ -176,10 +161,6 @@ func (g *Congrats) Close() {
 		g.playAgainButton.texture = nil
 		g.playAgainHoverButton.texture.Destroy()
 		g.playAgainHoverButton.texture = nil
-		g.scoreButton.texture.Destroy()
-		g.scoreButton.texture = nil
-		g.scoreHoverButton.texture.Destroy()
-		g.scoreHoverButton.texture = nil
 
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
@@ -207,46 +188,40 @@ func (g *Congrats) Run() ScreenID {
 
 					if g.playAgainButton.isClicked(mouseX, mouseY) {
 						fmt.Println("play again clicked")
-						g.ClickSound.Play(-1,0)
+						g.ClickSound.Play(-1, 0)
 						return StartScreen
 					}
-					if g.scoreButton.isClicked(mouseX, mouseY) {
-						fmt.Println("score clicked")
-						g.ClickSound.Play(-1,0)
-						return GameOverScreen
-					}
+
 				}
 			}
 		}
-		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
-		
+		g.Renderer.Clear() //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
+
 		//blur
-		blrDst := sdl.Rect{X:0,Y:0,W:800,H:600}
-		g.Renderer.Copy(g.blur,nil, &blrDst)
+		blrDst := sdl.Rect{X: 0, Y: 0, W: 800, H: 600}
+		g.Renderer.Copy(g.blur, nil, &blrDst)
 
 		g.Renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
-		g.Renderer.SetDrawColor(0,0,0,150)
+		g.Renderer.SetDrawColor(0, 0, 0, 150)
 		g.Renderer.FillRect(nil)
 
-		//g.Renderer.Copy(g.BackgroundImage, nil, nil) 
-
+		//g.Renderer.Copy(g.BackgroundImage, nil, nil)
 
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
-			X: (WindowWidth -g.screenTextW) / 2,
-			Y: (WindowHeight-g.screenTextH)/2,
+			X: (WindowWidth - g.screenTextW) / 2,
+			Y: (WindowHeight - g.screenTextH) / 2,
 			W: g.screenTextW,
 			H: g.screenTextH})
 
 		g.Renderer.Copy(g.uWonTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.uWonW) / 2,
-			Y: (WindowHeight - g.uWonH) / 2 +70,
+			Y: (WindowHeight-g.uWonH)/2 + 70,
 			W: g.uWonW,
 			H: g.uWonH,
 		})
 
 		mouseX, mouseY, _ := sdl.GetMouseState()
 		g.playAgainButton.hovered = g.playAgainButton.isClicked(mouseX, mouseY)
-		g.scoreButton.hovered = g.scoreButton.isClicked(mouseX, mouseY)
 
 		//PLAY
 		if g.playAgainButton.hovered {
@@ -274,27 +249,6 @@ func (g *Congrats) Run() ScreenID {
 			H: th,
 		})
 
-		//SCORE
-		if g.scoreButton.hovered {
-			g.Renderer.Copy(g.scoreButton.hoverTexture, nil, &g.scoreButton.rect)
-		} else {
-			g.Renderer.Copy(g.scoreButton.texture, nil, &g.scoreButton.rect)
-		}
-		//score tekst
-		if g.scoreButton.hovered {
-			tex = g.scoreButton.hoverTextTexture
-		} else {
-			tex = g.scoreButton.textBtnTexture
-		}
-
-		_, _, tw, th, _ = tex.Query()
-
-		g.Renderer.Copy(tex, nil, &sdl.Rect{
-			X: g.scoreButton.rect.X + (g.scoreButton.rect.W-tw)/2,
-			Y: g.scoreButton.rect.Y + (g.scoreButton.rect.H-th)/2 + 30,
-			W: tw,
-			H: th,
-		})
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}

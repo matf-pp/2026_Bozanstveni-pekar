@@ -61,41 +61,39 @@ type Button struct {
 
 type BaseGame struct {
 	BackgroundImage *sdl.Texture
-	ClickSound *mix.Chunk
-	Music *mix.Music
+	ClickSound      *mix.Chunk
+	Music           *mix.Music
 }
 
 type StartGame struct {
 	*Game
 	BaseGame
-	titleTexture      *sdl.Texture
+	titleTexture  *sdl.Texture
 	title2Texture *sdl.Texture
 
-	newGameTexture *sdl.Texture
+	newGameTexture  *sdl.Texture
 	newGame2Texture *sdl.Texture
 
 	insertNameTexture *sdl.Texture
 	playerName        string
 	playerNameTexture *sdl.Texture
 
-	playButton       Button
-	playHoverButton  Button
-	scoreButton      Button
-	scoreHoverButton Button
+	playButton      Button
+	playHoverButton Button
 
 	bottomTextEscTexture *sdl.Texture
-	bottomTextEscW int32
-	bottomTextEscH int32
+	bottomTextEscW       int32
+	bottomTextEscH       int32
 
 	bottomTextEnterTexture *sdl.Texture
-	bottomTextEnterW int32
-	bottomTextEnterH int32
+	bottomTextEnterW       int32
+	bottomTextEnterH       int32
 
 	cursorVisible bool
 	blink         uint64
 
-	titleW      int32
-	titleH      int32
+	titleW int32
+	titleH int32
 
 	newGameW int32
 	newGameH int32
@@ -104,7 +102,6 @@ type StartGame struct {
 	insertNameH int32
 	playerW     int32
 	playerH     int32
-
 }
 
 func NewStartGame(game *Game) *StartGame {
@@ -202,7 +199,7 @@ func (g *StartGame) LoadMedia() error {
 	if g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
 		return fmt.Errorf("error loading texture %v\n", err)
 	}
-	titleFont, err := ttf.OpenFont("fonts/Early_GameBoy.ttf",45)
+	titleFont, err := ttf.OpenFont("fonts/Early_GameBoy.ttf", 45)
 	if err != nil {
 		return err
 	}
@@ -315,38 +312,26 @@ func (g *StartGame) LoadMedia() error {
 
 	//obicna dugmad
 	g.playButton, err = g.LoadButton(
-		"images/button.png", 200, 380, 200, 200,
+		"images/button.png", 300, 380, 200, 200,
 	)
 	g.SetButtonText(&g.playButton, "play", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
-	g.scoreButton, err = g.LoadButton(
-		"images/button.png", 400, 380, 200, 200,
-	)
-	g.SetButtonText(&g.scoreButton, "score", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 200, 380, 200, 200,
+		"images/buttonHover.png", 300, 380, 200, 200,
 	)
 	g.SetButtonText(&g.playHoverButton, "play", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
 	g.playButton.hoverTexture = g.playHoverButton.texture
 	g.playButton.hoverTextTexture = g.playHoverButton.textBtnTexture
 
-	g.scoreHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 400, 380, 200, 200,
-	)
-	g.SetButtonText(&g.scoreHoverButton, "score", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
-
-	g.scoreButton.hoverTexture = g.scoreHoverButton.texture
-	g.scoreButton.hoverTextTexture = g.scoreHoverButton.textBtnTexture
-
 	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error loading chunk %v\n", err)
 	}
 
 	g.Music, err = mix.LoadMUS("music/thunderstorm.mp3")
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error loading music %v\n", err)
 	}
 
@@ -395,14 +380,6 @@ func (g *StartGame) Close() {
 		g.playHoverButton.hoverTexture.Destroy()
 		g.playHoverButton.hoverTexture = nil
 
-		g.scoreButton.texture.Destroy()
-		g.scoreButton.texture = nil
-		g.scoreHoverButton.texture.Destroy()
-		g.scoreHoverButton.texture = nil
-
-		g.scoreHoverButton.hoverTexture.Destroy()
-		g.scoreHoverButton.hoverTexture = nil
-	
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
 	}
@@ -440,15 +417,9 @@ func (g *StartGame) Run() ScreenID {
 					mouseY := e.Y
 
 					if g.playButton.isClicked(mouseX, mouseY) {
-						g.ClickSound.Play(-1,0)
+						g.ClickSound.Play(-1, 0)
 						fmt.Println("play clicked")
 						return TransitionScreen
-					}
-
-					if g.scoreButton.isClicked(mouseX, mouseY) {
-						fmt.Println("score clicked")
-						g.ClickSound.Play(-1,0)
-						return CongratsScreen
 					}
 				}
 			}
@@ -456,38 +427,38 @@ func (g *StartGame) Run() ScreenID {
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
 		g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
 		//Copy(texture, šta uzeti iz slike, gde nacrtati)
-		
+
 		g.Renderer.Copy(g.titleTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.titleW) / 2,
-			Y: (WindowHeight- g.titleH)/2,
+			Y: (WindowHeight - g.titleH) / 2,
 			W: g.titleW,
 			H: g.titleH,
 		})
 
 		g.Renderer.Copy(g.title2Texture, nil, &sdl.Rect{
-			X: (WindowWidth - g.titleW) / 2 - 7,
-			Y: (WindowHeight-g.titleH)/2,
+			X: (WindowWidth-g.titleW)/2 - 7,
+			Y: (WindowHeight - g.titleH) / 2,
 			W: g.titleW,
 			H: g.titleH,
 		})
 
 		g.Renderer.Copy(g.newGameTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.newGameW) / 2,
-			Y: (WindowHeight- g.newGameH)/ 2 + 50 ,
+			Y: (WindowHeight-g.newGameH)/2 + 50,
 			W: g.newGameW,
 			H: g.newGameH,
 		})
 
 		g.Renderer.Copy(g.newGame2Texture, nil, &sdl.Rect{
-			X: (WindowWidth - g.newGameW) / 2 - 5,
-			Y: (WindowHeight - g.newGameH)/ 2 + 50 ,
+			X: (WindowWidth-g.newGameW)/2 - 5,
+			Y: (WindowHeight-g.newGameH)/2 + 50,
 			W: g.newGameW,
 			H: g.newGameH,
 		})
 
 		g.Renderer.Copy(g.insertNameTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.insertNameW) / 2,
-			Y: (WindowHeight - g.insertNameH) / 2 + 90,
+			Y: (WindowHeight-g.insertNameH)/2 + 90,
 			W: g.insertNameW,
 			H: g.insertNameH,
 		})
@@ -545,7 +516,6 @@ func (g *StartGame) Run() ScreenID {
 
 		mouseX, mouseY, _ := sdl.GetMouseState()
 		g.playButton.hovered = g.playButton.isClicked(mouseX, mouseY)
-		g.scoreButton.hovered = g.scoreButton.isClicked(mouseX, mouseY)
 
 		var bottomText *sdl.Texture
 
@@ -577,33 +547,11 @@ func (g *StartGame) Run() ScreenID {
 			H: th,
 		})
 
-		//SCORE
-		if g.scoreButton.hovered {
-			g.Renderer.Copy(g.scoreButton.hoverTexture, nil, &g.scoreButton.rect)
-		} else {
-			g.Renderer.Copy(g.scoreButton.texture, nil, &g.scoreButton.rect)
-		}
-		//score tekst
-		if g.scoreButton.hovered {
-			tex = g.scoreButton.hoverTextTexture
-		} else {
-			tex = g.scoreButton.textBtnTexture
-		}
-
-		_, _, tw, th, _ = tex.Query()
-
-		g.Renderer.Copy(tex, nil, &sdl.Rect{
-			X: g.scoreButton.rect.X + (g.scoreButton.rect.W-tw)/2,
-			Y: g.scoreButton.rect.Y + (g.scoreButton.rect.H-th)/2 + 30,
-			W: tw,
-			H: th,
-		})
-
 		_, _, tw, th, _ = bottomText.Query()
 
 		g.Renderer.Copy(bottomText, nil, &sdl.Rect{
 			X: (WindowWidth - tw) / 2,
-			Y: (WindowHeight- th)/ 2 + 280 ,
+			Y: (WindowHeight-th)/2 + 280,
 			W: tw,
 			H: th})
 
