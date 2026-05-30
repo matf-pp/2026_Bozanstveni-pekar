@@ -11,28 +11,30 @@ Svaki nivo ima 5 iteracija. Na početku svake iteracije, Dante počinje kretanje
 Igrač gradi kose puteve tako što levim klikom na mišu pritisne na početnu i krajnju tačku puta koji želi da izgradi. Pritisnute tačke se moraju nalaziti na dva susedna vertikalna puta. Desnim klikom igrač otklanja izbor početne tačke puta koji želi da izgradi. Izgrađeni putevi se ne uklanjaju do prelaska na naredni nivo.
 
 ## Jezici i korišćene tehnologije
-    • Go
-    • SDL2
-    • Pixilart
-    • Piskel
-    • Visual Studio Code
+    - Go
+    - SDL2
+    - Pixilart
+    - Piskel
+    - Visual Studio Code
 
 
 ## Prevođenje i pokretanje projekta
 Da biste samostalno preveli i pokrenuli projekat, potrebno je da na vasem računaru imate instalirane [Go v1.13+](https://go.dev/dl/) i [SDL2](https://github.com/libsdl-org/SDL/releases).
 
 Pokretanje možete izvršiti narednim komandama u vašem CLI:
-> $ git clone github.com/matf-pp/2026_Bozanstveni-pekar.git
-> $ cd  2026_Bozanstveni-pekar
-> $ go build main.go
-> $ ./main
+```
+$ git clone github.com/matf-pp/2026_Bozanstveni-pekar.git
+$ cd  2026_Bozanstveni-pekar
+$ go build main.go
+$ ./main
+```
 
 ## Pokretanje izvršnog programa
 Preuzmite Bozanstveni_pekar.zip iz Releases taba. Kada otpakujete arhivu, pozicionirajte se unutar otpakovanog direktorijuma. Program možete pokrenuti duplim klikom na izvršni fajl “Bozanstveni pekar” ili komadnom:
 > $ ./'Bozanstveni pekar'
 
 ## Operativni sistemi
-    • Linux
+    - Linux
 
 ## Autori
 Lazar Beljić - https://github.com/Beldzik
