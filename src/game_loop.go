@@ -51,6 +51,8 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 						g.dante.naKosomPutu = false
 						g.dante.trenutniPut = nil
 						g.dante.poslednjiPut = nil
+					case sdl.SCANCODE_T:
+						return ekran
 					}
 				}
 			case *sdl.MouseButtonEvent:
@@ -176,7 +178,7 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
 
 			//breakuje petlju da bi otisao na drugi nivo jer ispod petlje pise retunr nesto nesto level2
-			if g.brojacDobrihTunela == 5 {
+			if g.brojacDobrihTunela >= 5 {
 				break
 			}
 
