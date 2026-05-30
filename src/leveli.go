@@ -8,7 +8,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 
 	//"2026_Bozanstveni-pekar-main/screens"
-	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
+	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 )
 
 type Levels struct {

@@ -9,8 +9,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 
-	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src"
+	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 )
 
 const (

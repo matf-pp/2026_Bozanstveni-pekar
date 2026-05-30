@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 
-	"github.com/matf-pp/2026_Bozanstveni-pekar/screens"
+	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
