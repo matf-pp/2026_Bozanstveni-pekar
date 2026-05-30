@@ -299,7 +299,7 @@ func (g *Levels) RandomStartX() float64 {
 	return float64(g.OpsegVertikalnih[brPuta].X + 16)
 }
 
-func (g *Levels) Run(ekran screens.ScreenID) screens.ScreenID {
+func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	horizontalPaths := []IzgradjeniPut{}
 	var klik Kliknut
 
@@ -463,6 +463,7 @@ func (g *Levels) Run(ekran screens.ScreenID) screens.ScreenID {
 		if int32(g.dante.x) >= tunel.X && int32(g.dante.x) <= (tunel.X+tunel.W) && int32(g.dante.y) >= tunel.Y {
 			// stigao u dobar tunel -> uvecamo score
 			g.brojacDobrihTunela++
+			*score++
 			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
 
 			//breakuje petlju da bi otisao na drugi nivo jer ispod petlje pise retunr nesto nesto level2

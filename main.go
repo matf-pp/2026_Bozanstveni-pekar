@@ -69,13 +69,16 @@ func main() {
 	var levelNum int
 	var levelStr string
 
+	var score int
+	var ime string
+
 	screen := screens.StartScreen
 	for screen != screens.ExitScreen {
 		switch screen {
 		case screens.StartScreen:
 			start := screens.NewStartGame(engine)
 			start.LoadMedia()
-			screen = start.Run()
+			screen = start.Run(&ime)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level1Screen
 				circleVar = "prvi"
@@ -85,7 +88,7 @@ func main() {
 
 		case screens.GameOverScreen:
 			gameOver := screens.NewGameOver(engine)
-			gameOver.LoadMedia()
+			gameOver.LoadMedia(score, ime)
 			gameOver.CreateBlur()
 			screen = gameOver.Run()
 
@@ -98,7 +101,7 @@ func main() {
 		case screens.Level1Screen:
 			lvl1 := src.NewLevel(engine)
 			lvl1.LoadMedia("images/lvl1.png")
-			screen = lvl1.Run(screens.TransitionScreen)
+			screen = lvl1.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level2Screen
 				circleVar = "drugi"
@@ -109,7 +112,7 @@ func main() {
 		case screens.Level2Screen:
 			lvl2 := src.NewLevel(engine)
 			lvl2.LoadMedia("images/lvl2.png")
-			screen = lvl2.Run(screens.TransitionScreen)
+			screen = lvl2.Run(screens.TransitionScreen, &score)
 
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level3Screen
@@ -121,7 +124,7 @@ func main() {
 		case screens.Level3Screen:
 			lvl3 := src.NewLevel(engine)
 			lvl3.LoadMedia("images/lvl3.png")
-			screen = lvl3.Run(screens.TransitionScreen)
+			screen = lvl3.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level4Screen
 				circleVar = "cetvrti"
@@ -132,7 +135,7 @@ func main() {
 		case screens.Level4Screen:
 			lvl4 := src.NewLevel(engine)
 			lvl4.LoadMedia("images/lvl4.png")
-			screen = lvl4.Run(screens.TransitionScreen)
+			screen = lvl4.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level5Screen
 				circleVar = "petii"
@@ -143,7 +146,7 @@ func main() {
 		case screens.Level5Screen:
 			lvl5 := src.NewLevel(engine)
 			lvl5.LoadMedia("images/lvl5.png")
-			screen = lvl5.Run(screens.TransitionScreen)
+			screen = lvl5.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level6Screen
 				circleVar = "sesti"
@@ -154,7 +157,7 @@ func main() {
 		case screens.Level6Screen:
 			lvl6 := src.NewLevel(engine)
 			lvl6.LoadMedia("images/lvl6.png")
-			screen = lvl6.Run(screens.TransitionScreen)
+			screen = lvl6.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level7Screen
 				circleVar = "sedmi"
@@ -165,7 +168,7 @@ func main() {
 		case screens.Level7Screen:
 			lvl7 := src.NewLevel(engine)
 			lvl7.LoadMedia("images/lvl7.png")
-			screen = lvl7.Run(screens.TransitionScreen)
+			screen = lvl7.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level8Screen
 				circleVar = "osmi"
@@ -176,7 +179,7 @@ func main() {
 		case screens.Level8Screen:
 			lvl8 := src.NewLevel(engine)
 			lvl8.LoadMedia("images/lvl8.png")
-			screen = lvl8.Run(screens.TransitionScreen)
+			screen = lvl8.Run(screens.TransitionScreen, &score)
 			if screen == screens.TransitionScreen {
 				levelVar = screens.Level9Screen
 				circleVar = "deveti"
@@ -188,7 +191,7 @@ func main() {
 
 			lvl9 := src.NewLevel(engine)
 			lvl9.LoadMedia("images/lvl9.png")
-			screen = lvl9.Run(screens.CongratsScreen)
+			screen = lvl9.Run(screens.CongratsScreen, &score)
 
 		//NewTransition(game *Game, next ScreenID, circle string, level int, name string)
 		case screens.TransitionScreen:

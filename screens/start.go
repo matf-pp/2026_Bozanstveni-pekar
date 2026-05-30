@@ -386,7 +386,7 @@ func (g *StartGame) Close() {
 }
 
 // pokretanje igrice - game loop
-func (g *StartGame) Run() ScreenID {
+func (g *StartGame) Run(ime *string) ScreenID {
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch e := event.(type) {
@@ -405,7 +405,10 @@ func (g *StartGame) Run() ScreenID {
 						}
 						//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
 					case sdl.SCANCODE_RETURN:
-						return TransitionScreen
+						if g.playerName != "" {
+							*ime = g.playerName
+							return TransitionScreen
+						}
 					}
 				}
 			case *sdl.TextInputEvent:
@@ -416,9 +419,10 @@ func (g *StartGame) Run() ScreenID {
 					mouseX := e.X
 					mouseY := e.Y
 
-					if g.playButton.isClicked(mouseX, mouseY) {
+					if g.playButton.isClicked(mouseX, mouseY) && g.playerName != "" {
 						g.ClickSound.Play(-1, 0)
 						fmt.Println("play clicked")
+						*ime = g.playerName
 						return TransitionScreen
 					}
 				}
