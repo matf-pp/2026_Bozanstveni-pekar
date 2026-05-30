@@ -42,5 +42,7 @@ $ ./'Bozanstveni pekar'
 
 ## Autori
 Lazar Beljić - https://github.com/Beldzik
+
 Nađa Kostić - https://github.com/djadjaa
+
 https://github.com/microslop-pp
