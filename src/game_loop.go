@@ -19,10 +19,10 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 		{X: 672, Y: 0, W: 32, H: 580},
 	}
 
-	g.OpsegTunela = [4]int32{50, 225, 425, 640}
+	g.OpsegTunela = [4]int32{70, 245, 445, 660}
 	indeksiTunel := rand.Perm(4) //randomizovanje tunela
 	g.goodTunnelPos = sdl.Rect{
-		X: g.OpsegTunela[indeksiTunel[0]], Y: 500, W: 105, H: 105}
+		X: g.OpsegTunela[indeksiTunel[0]], Y: 550, W: 50, H: 50}
 
 	g.dante.x = g.RandomStartX()
 	g.dante.y = 10
@@ -57,14 +57,14 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 				}
 			case *sdl.MouseButtonEvent:
 				if e.Type == sdl.MOUSEBUTTONDOWN {
-					if e.Clicks == 1 && e.Button == sdl.BUTTON_LEFT && (g.KlikUnutra(e.X) == true) {
+					if e.Clicks == 1 && e.Button == sdl.BUTTON_LEFT && (g.KlikUnutra(e.X, e.Y) == true) {
 						if klik.brKlikova == 0 {
 							klik.klik1x = e.X
 							klik.klik1y = e.Y
 							klik.brKlikova++
 							klik.kliknuto1 = true
 
-						} else if klik.brKlikova == 1 && (g.DozvoljenoSpajanje(klik.klik1x, e.X) == true) {
+						} else if klik.brKlikova == 1 && (g.DozvoljenoSpajanje(klik.klik1x, klik.klik1y, e.X, e.Y) == true) {
 							klik.klik2x = e.X
 							klik.klik2y = e.Y
 							klik.brKlikova++
@@ -101,15 +101,15 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 		g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[1]], Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[1]], Y: 550, W: 60, H: 50,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[2]], Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[2]], Y: 550, W: 60, H: 50,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[3]], Y: 500, W: 100, H: 100,
+			X: g.OpsegTunela[indeksiTunel[3]], Y: 550, W: 60, H: 50,
 		})
 
 		if klik.kliknuto1 == true {
@@ -119,8 +119,8 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 		}
 		if klik.kliknuto2 == true {
 
-			centriranX1 := g.CentarVertPuta(klik.klik1x)
-			centriranX2 := g.CentarVertPuta(klik.klik2x)
+			centriranX1 := g.CentarVertPuta(klik.klik1x, klik.klik1y)
+			centriranX2 := g.CentarVertPuta(klik.klik2x, klik.klik2y)
 
 			flagDaLiDodatiPut := true
 

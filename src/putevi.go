@@ -29,14 +29,14 @@ type Kliknut struct {
 }
 
 // Pomocna funkcija
-func Unutra(clickX, opX, opW int32) bool {
-	return clickX >= opX && clickX <= (opX+opW)
+func Unutra(clickX, clickY, opX, opW int32) bool {
+	return clickX >= opX && clickX <= (opX+opW) && clickY < 550
 }
 
 // Proverava da li je klik izvrsen unutar puteva
-func (g *Levels) KlikUnutra(clickX int32) bool {
+func (g *Levels) KlikUnutra(clickX, clickY int32) bool {
 	for _, opseg := range g.OpsegVertikalnih {
-		if Unutra(clickX, opseg.X, opseg.W) {
+		if Unutra(clickX, clickY, opseg.X, opseg.W) {
 			return true
 		}
 	}
@@ -45,23 +45,23 @@ func (g *Levels) KlikUnutra(clickX int32) bool {
 }
 
 // Proverava da li su tuneli susedni
-func (g *Levels) DozvoljenoSpajanje(click1X, click2X int32) bool {
-	if Unutra(click1X, g.OpsegVertikalnih[0].X, g.OpsegVertikalnih[0].W) && Unutra(click2X, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) {
+func (g *Levels) DozvoljenoSpajanje(click1X, click1Y, click2X, click2Y int32) bool {
+	if Unutra(click1X, click1Y, g.OpsegVertikalnih[0].X, g.OpsegVertikalnih[0].W) && Unutra(click2X, click2Y, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) {
 		return true
-	} else if Unutra(click1X, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) && (Unutra(click2X, g.OpsegVertikalnih[0].X, g.OpsegVertikalnih[0].W) || Unutra(click2X, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W)) {
+	} else if Unutra(click1X, click1Y, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) && (Unutra(click2X, click2Y, g.OpsegVertikalnih[0].X, g.OpsegVertikalnih[0].W) || Unutra(click2X, click2Y, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W)) {
 		return true
-	} else if Unutra(click1X, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W) && (Unutra(click2X, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) || Unutra(click2X, g.OpsegVertikalnih[3].X, g.OpsegVertikalnih[3].W)) {
+	} else if Unutra(click1X, click1Y, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W) && (Unutra(click2X, click2Y, g.OpsegVertikalnih[1].X, g.OpsegVertikalnih[1].W) || Unutra(click2X, click2Y, g.OpsegVertikalnih[3].X, g.OpsegVertikalnih[3].W)) {
 		return true
-	} else if Unutra(click1X, g.OpsegVertikalnih[3].X, g.OpsegVertikalnih[3].W) && Unutra(click2X, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W) {
+	} else if Unutra(click1X, click1Y, g.OpsegVertikalnih[3].X, g.OpsegVertikalnih[3].W) && Unutra(click2X, click2Y, g.OpsegVertikalnih[2].X, g.OpsegVertikalnih[2].W) {
 		return true
 	}
 
 	return false
 }
 
-func (g *Levels) CentarVertPuta(clickX int32) int32 {
+func (g *Levels) CentarVertPuta(clickX, clickY int32) int32 {
 	for _, opseg := range g.OpsegVertikalnih {
-		if Unutra(clickX, opseg.X, opseg.W) {
+		if Unutra(clickX, clickY, opseg.X, opseg.W) {
 			// centar vert puta
 			return opseg.X + (opseg.W / 2)
 		}

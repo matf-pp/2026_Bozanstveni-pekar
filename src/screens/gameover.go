@@ -229,8 +229,8 @@ func (g *GameOver) Run() ScreenID {
 			H: g.rezultatH})
 
 		g.Renderer.Copy(g.leb, nil, &sdl.Rect{
-			X: 700,
-			Y: 50,
+			X: 620,
+			Y: 57,
 			W: 80,
 			H: 80})
 
