@@ -344,7 +344,6 @@ func (g *Levels) Run(ekran screens.ScreenID) screens.ScreenID {
 						g.dante.poslednjiPut = nil
 					}
 				}
-
 			case *sdl.MouseButtonEvent:
 				if e.Type == sdl.MOUSEBUTTONDOWN {
 					if e.Clicks == 1 && e.Button == sdl.BUTTON_LEFT && (g.KlikUnutra(e.X) == true) {
@@ -508,5 +507,4 @@ func (g *Levels) Run(ekran screens.ScreenID) screens.ScreenID {
 
 	}
 	return ekran
-	//return screens.Level2Screen
 }
