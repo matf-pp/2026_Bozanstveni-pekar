@@ -4,13 +4,14 @@
 ## Uputsvo
 Na početnom ekranu nepohodno je uneti ime u naznačenom polju. Kada je ime uneto, pritiskom “Enter” tastera na tastaturi ili “play” dugmeta prikazanog na ekranu započinje se igra. Igrač može u bilo kom trenutku izaći iz igre pritiskom “Esc” tastera.
 
-Tokom igre, Dante se spušta niz jedan od četiri vertikalnih puteva kroz devet nivoa. Na kraju tri puta nalaze se pećnice, dok je na kraju jednog puta tost. Tostevi i pećnice se raspoređuju nasumično na svakom nivou. Cilj igrača je da usmeri Dantea ka tostu gradeći kose puteve između već postojećih veritkalnih. Ako Dante upadne u pećnicu, igrač gubi igru.
+Tokom igre, Dante se spušta niz jedan od četiri vertikalnih puteva kroz devet nivoa. Na kraju tri puta nalaze se pećnice, dok je na kraju jednog puta tost. Tost i pećnice se raspoređuju nasumično na svakom nivou. Cilj igrača je da usmeri Dantea ka tostu gradeći kose puteve između već postojećih veritkalnih. Ako Dante upadne u pećnicu, igrač gubi igru.
 
 Svaki nivo ima 5 iteracija. Na početku svake iteracije, Dante počinje kretanje sa nasumičnog puta. Na kraju svake iteracije u okviru nivoa, Dante ubrzava svoje kretanje.
 
 Igrač gradi kose puteve tako što levim klikom na mišu pritisne na početnu i krajnju tačku puta koji želi da izgradi. Pritisnute tačke se moraju nalaziti na dva susedna vertikalna puta. Desnim klikom igrač otklanja izbor početne tačke puta koji želi da izgradi. Izgrađeni putevi se ne uklanjaju do prelaska na naredni nivo.
 
 ## Jezici i korišćene tehnologije
+
     - Go
     - SDL2
     - Pixilart
@@ -31,9 +32,12 @@ $ ./main
 
 ## Pokretanje izvršnog programa
 Preuzmite Bozanstveni_pekar.zip iz Releases taba. Kada otpakujete arhivu, pozicionirajte se unutar otpakovanog direktorijuma. Program možete pokrenuti duplim klikom na izvršni fajl “Bozanstveni pekar” ili komadnom:
-> $ ./'Bozanstveni pekar'
+```
+$ ./'Bozanstveni pekar'
+```
 
 ## Operativni sistemi
+
     - Linux
 
 ## Autori
