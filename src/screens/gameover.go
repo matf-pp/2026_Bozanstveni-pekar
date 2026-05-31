@@ -223,13 +223,13 @@ func (g *GameOver) Run() ScreenID {
 			H: g.smileyH})
 
 		g.Renderer.Copy(g.rezultatText, nil, &sdl.Rect{
-			X: (WindowWidth - g.rezultatW) / 2,
+			X: (WindowWidth-g.rezultatW)/2 - 40,
 			Y: 50,
 			W: g.rezultatW,
 			H: g.rezultatH})
 
 		g.Renderer.Copy(g.leb, nil, &sdl.Rect{
-			X: 620,
+			X: (WindowWidth-g.rezultatW)/2 - 40 + g.rezultatW,
 			Y: 57,
 			W: 80,
 			H: 80})

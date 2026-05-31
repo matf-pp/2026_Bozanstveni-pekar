@@ -387,6 +387,7 @@ func (g *StartGame) Close() {
 
 // pokretanje igrice - game loop
 func (g *StartGame) Run(ime *string) ScreenID {
+	var brojacSlova int32
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch e := event.(type) {
@@ -402,6 +403,7 @@ func (g *StartGame) Run(ime *string) ScreenID {
 						if len(g.playerName) > 0 {
 							g.playerName = g.playerName[:len(g.playerName)-1]
 							g.renderText(g.playerName)
+							brojacSlova--
 						}
 						//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
 					case sdl.SCANCODE_RETURN:
@@ -412,8 +414,11 @@ func (g *StartGame) Run(ime *string) ScreenID {
 					}
 				}
 			case *sdl.TextInputEvent:
-				g.playerName += e.GetText()
-				g.renderText(g.playerName)
+				if brojacSlova < 6 {
+					g.playerName += e.GetText()
+					g.renderText(g.playerName)
+					brojacSlova++
+				}
 			case *sdl.MouseButtonEvent:
 				if e.Type == sdl.MOUSEBUTTONDOWN {
 					mouseX := e.X
