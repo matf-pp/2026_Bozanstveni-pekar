@@ -1,4 +1,7 @@
 # 2026_Božanstveni-pekar
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/65b6dffcaea94ec9b793c0d48ca77379)](https://app.codacy.com/gh/matf-pp/2026_Bozanstveni-pekar?utm_source=github.com&utm_medium=referral&utm_content=matf-pp/2026_Bozanstveni-pekar&utm_campaign=Badge_Grade)
+
 ## Opis
 “Božanstveni pekar” je igra inspirisana “Božanstvenom komedijom” i ljubavlju autora igre prema hlebu. Igrač navodi Dantea kroz devet krugova pakla kako bi iz njega spasao sve hlebove koje na svom put nađe. Igra je u 2D-u, a grafika dočarana piksel artom i *fotorealizmom*.
 ## Uputsvo
