@@ -38,7 +38,7 @@ Pokretanje možete izvršiti narednim komandama u vašem CLI:
 
 ```bash
 git clone github.com/matf-pp/2026_Bozanstveni-pekar.git
-cd  2026_Bozanstveni-pekar
+cd 2026_Bozanstveni-pekar
 go build main.go
 ./main
 ```
