@@ -3,12 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
-
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
-
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 )
@@ -50,25 +48,20 @@ func closeSDL() {
 
 func main() {
 	defer closeSDL()
-
 	if err := initSDL(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
-
 	engine := screens.NewGame(windowTitle)
 	defer engine.Close()
-
 	if err := engine.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
-
 	var levelVar screens.ScreenID
 	var circleVar string
 	var levelNum int
 	var levelStr string
-
 	var score int
 	var ime string
 
@@ -188,12 +181,10 @@ func main() {
 			}
 
 		case screens.Level9Screen:
-
 			lvl9 := src.NewLevel(engine)
 			lvl9.LoadMedia("images/lvl9.png")
 			screen = lvl9.Run(screens.CongratsScreen, &score)
 
-		//NewTransition(game *Game, next ScreenID, circle string, level int, name string)
 		case screens.TransitionScreen:
 			transition := screens.NewTransition(engine, levelVar, circleVar, levelNum, levelStr)
 			transition.LoadMedia()

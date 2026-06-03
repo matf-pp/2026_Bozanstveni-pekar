@@ -2,7 +2,6 @@ package screens
 
 import (
 	"fmt"
-
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
@@ -33,8 +32,7 @@ func NewCongrats(game *Game) *Congrats {
 		Game: game,
 	}
 }
-
-// argument metode - (scene *sdl.Texture)
+//Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
 func (g *Congrats) CreateBlur() error {
 	var err error
 
@@ -49,13 +47,12 @@ func (g *Congrats) CreateBlur() error {
 	}
 
 	g.Renderer.SetRenderTarget(g.blur)
-	//g.Renderer.Clear()
-	g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
+	g.Renderer.Copy(g.BackgroundImage, nil, nil)
 	g.Renderer.SetRenderTarget(nil)
 
 	return nil
 }
-
+//Učitavanje sadržaja ekrana za pobedu
 func (g *Congrats) LoadMedia() error {
 	var err error
 	g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg")
@@ -142,7 +139,7 @@ func (g *Congrats) LoadMedia() error {
 
 	return err
 }
-
+//Zatvaranje ekrana za gubitak
 func (g *Congrats) Close() {
 	if g != nil {
 		mix.HaltMusic()
@@ -167,7 +164,7 @@ func (g *Congrats) Close() {
 
 	}
 }
-
+//Pokretanje ekrana za gubitak
 func (g *Congrats) Run() ScreenID {
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -204,8 +201,6 @@ func (g *Congrats) Run() ScreenID {
 		g.Renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 		g.Renderer.SetDrawColor(0, 0, 0, 150)
 		g.Renderer.FillRect(nil)
-
-		//g.Renderer.Copy(g.BackgroundImage, nil, nil)
 
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.screenTextW) / 2,

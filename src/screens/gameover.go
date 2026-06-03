@@ -3,19 +3,15 @@ package screens
 import (
 	"fmt"
 	"strconv"
-
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-
 	"github.com/veandco/go-sdl2/mix"
-	//"github.com/veandco/go-sdl2/ttf"
 )
 
 type GameOver struct {
 	*Game
 	BaseGame
 	screenTextTexture *sdl.Texture
-	//screenTextSize int
 	screenTextW int32
 	screenTextH int32
 
@@ -31,9 +27,7 @@ type GameOver struct {
 	rezultatH    int32
 
 	leb *sdl.Texture
-
 	blur    *sdl.Texture
-	snapped bool //za snapshot
 }
 
 func NewGameOver(game *Game) *GameOver {
@@ -41,8 +35,7 @@ func NewGameOver(game *Game) *GameOver {
 		Game: game,
 	}
 }
-
-// argument metode - (scene *sdl.Texture)
+//Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
 func (g *GameOver) CreateBlur() error {
 	var err error
 
@@ -57,40 +50,44 @@ func (g *GameOver) CreateBlur() error {
 	}
 
 	g.Renderer.SetRenderTarget(g.blur)
-	//g.Renderer.Clear()
-	g.Renderer.Copy(g.BackgroundImage, nil, nil) //umesto g.BackgroundImage staviti scene
+	g.Renderer.Copy(g.BackgroundImage, nil, nil)
 	g.Renderer.SetRenderTarget(nil)
 
 	return nil
 }
-
+//Učitavanje sadržaja ekrana za gubitak
 func (g *GameOver) LoadMedia(score int, ime string) error {
 	var err error
 	if g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
-		return fmt.Errorf("error loading texture %v\n", err)
+		return fmt.Errorf("error loading texture %v", err)
 	}
 	screenTextFont, err := g.LoadFont(80)
 	if err != nil {
-		return fmt.Errorf("error loading font%v\n", err)
+		return fmt.Errorf("error loading screentext font %v", err)
 	}
 	smileyFont, err := g.LoadFont(30)
 	if err != nil {
-		return fmt.Errorf("error loading font%v\n", err)
+		return fmt.Errorf("error loading smiley font %v", err)
 	}
+	scoreFont, err := g.LoadFont(50)
+	if err != nil {
+		return fmt.Errorf("error loading score font %v", err)
+	}
+	defer scoreFont.Close()
 	defer smileyFont.Close()
 	defer screenTextFont.Close()
 
 	gameOverSurf, err := screenTextFont.RenderUTF8Blended("Game Over", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading gameover font surface %v", err)
 	}
 	smileySurf, err := smileyFont.RenderUTF8Blended(":(", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading smiley font surface %v", err)
 	}
-	rezultatSurf, err := screenTextFont.RenderUTF8Blended("Score: "+ime+" - "+strconv.Itoa(score), sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	rezultatSurf, err := scoreFont.RenderUTF8Blended("Score: "+ime+" - "+strconv.Itoa(score), sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading score font surface %v", err)
 	}
 
 	defer gameOverSurf.Free()
@@ -100,16 +97,15 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	//prikaz
 	g.screenTextTexture, err = g.Renderer.CreateTextureFromSurface(gameOverSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error loading screentext font texture from surface %v", err)
 	}
 	g.smiley, err = g.Renderer.CreateTextureFromSurface(smileySurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error loading smiley font texture from surface %v", err)
 	}
-
 	g.rezultatText, err = g.Renderer.CreateTextureFromSurface(rezultatSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error loading score font texture from surface %v", err)
 	}
 
 	//izvlacenje podataka
@@ -119,11 +115,11 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	}
 	_, _, g.smileyW, g.smileyH, err = g.smiley.Query()
 	if err != nil {
-		return fmt.Errorf("error loading screen text query %v\n", err)
+		return fmt.Errorf("error loading smiley text query %v\n", err)
 	}
 	_, _, g.rezultatW, g.rezultatH, err = g.rezultatText.Query()
 	if err != nil {
-		return fmt.Errorf("error loading screen text query %v\n", err)
+		return fmt.Errorf("error loading score text query %v\n", err)
 	}
 
 	//obicno dugme
@@ -148,30 +144,28 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	if err != nil {
 		return err
 	}
-
+	//Učitavanje zvuka za klik na dugme
 	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
 	if err != nil {
 		return fmt.Errorf("error loading chunk %v\n", err)
 	}
-
+	//Pozadinska muzika kada igrač izgubi
 	g.Music, err = mix.LoadMUS("sounds/gameover.mp3")
 	if err != nil {
 		return fmt.Errorf("error loading music %v\n", err)
 	}
-
+	//Učitavanje ikonice hleba pored rezultata
 	g.leb, err = img.LoadTexture(g.Renderer, "images/leb.png")
 	if err != nil {
 		return fmt.Errorf("error loading leb %v\n", err)
 	}
-
 	err = g.Music.Play(0)
 	if err != nil {
 		return fmt.Errorf("error playing music %v\n", err)
 	}
-
 	return err
 }
-
+//Pokretanje ekrana za gubitak igre
 func (g *GameOver) Run() ScreenID {
 	for true {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -207,8 +201,6 @@ func (g *GameOver) Run() ScreenID {
 		g.Renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 		g.Renderer.SetDrawColor(0, 0, 0, 150)
 		g.Renderer.FillRect(nil)
-
-		//g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura
 
 		g.Renderer.Copy(g.screenTextTexture, nil, &sdl.Rect{
 			X: (WindowWidth - g.screenTextW) / 2,
@@ -268,10 +260,9 @@ func (g *GameOver) Run() ScreenID {
 
 	return ExitScreen
 }
-
+//Zatvaranje ekrana za gubitak igre
 func (g *GameOver) Close() {
 	if g != nil {
-		//gasimo i postavimo adresu na 0 -> free
 		mix.HaltMusic()
 		mix.HaltChannel(-1)
 
@@ -302,6 +293,5 @@ func (g *GameOver) Close() {
 
 		g.leb.Destroy()
 		g.leb = nil
-
 	}
 }

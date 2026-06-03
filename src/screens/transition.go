@@ -2,15 +2,11 @@ package screens
 
 import (
 	"fmt"
-
-	//"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-
 	"github.com/veandco/go-sdl2/mix"
-	//"github.com/veandco/go-sdl2/ttf"
-	//"2026_Bozanstveni-pekar/levels"
 )
 
+//Novi tip za fazu tranzicije
 type TransitionPhase int
 
 const (
@@ -31,16 +27,17 @@ type Transition struct {
 	tsW int32
 	tsH int32
 	
-	alpha uint8
-    next  ScreenID
-	done bool
+	alpha uint8 //providnost teksta
+    next  ScreenID //koji ekran ide posle tranzicije
+	done bool //da li je tranzicija završena
 
+	//promenljive koje se menjaju u zavisnosti od nivoa
 	circleName string
     levelNumber int
     levelName string
 
 	phase TransitionPhase
-	holdStart uint64
+	holdStart uint64 //početak zadržavanja teksta
 }
 
 func NewTransition(game *Game, next ScreenID, circle string, level int, name string) *Transition {
@@ -55,7 +52,7 @@ func NewTransition(game *Game, next ScreenID, circle string, level int, name str
 		levelName: name,
 	}
 }
-
+//Učitavanje sadržaja tranzicije
 func (g *Transition) LoadMedia() error {
 	var err error
 	transitionFont, _ := g.LoadFont(50)
@@ -63,49 +60,51 @@ func (g *Transition) LoadMedia() error {
 	defer transitionFont.Close()
 	defer transitionSubFont.Close()
 
+	//Izvlačimo tekstove koji će biti ispisani na ekranu tokom tranzicije
 	text := fmt.Sprintf(
     "Silazak u %s krug pakla...", g.circleName)
-
 	textsub := fmt.Sprintf("Level %d - %s",g.levelNumber, g.levelName)
 
 	//surface
 	transitionSurf, err := transitionFont.RenderUTF8Blended(text, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font from surface%v\n", err)
+		return fmt.Errorf("error loading transition text font from surface %v ", err)
 	}
 	transitionSubSurf, err := transitionSubFont.RenderUTF8Blended(textsub, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font from surface%v\n", err)
+		return fmt.Errorf("error loading transition subtext font from surface %v ", err)
 	}
 
 	//texture
 	g.transitionTextTexture, err = g.Renderer.CreateTextureFromSurface(transitionSurf)
 	if err!=nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error loading transition text font texture from surface %v ", err)
 	}
 
 	g.transitionSubtextTexture, err = g.Renderer.CreateTextureFromSurface(transitionSubSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error loading transition subtext font texture from surface %v ", err)
 	}
-
+	
+	//Izvlačenje dimenzija teksta
 	_, _, g.tW, g.tH, err = g.transitionTextTexture.Query()
 	_, _, g.tsW, g.tsH, err = g.transitionSubtextTexture.Query()
 
+	//Učitavanje pozadinske muzike
 	g.Music, err = mix.LoadMUS("sounds/transition.mp3")
 	if err != nil{
 		return fmt.Errorf("error loading music %v\n", err)
 	}
-
 	err = g.Music.Play(0)
 	if err != nil {
 		return fmt.Errorf("error playing music %v\n", err)
 	}
+	//koliko pozadinska muzika radi
 	mix.FadeOutMusic(5000)
 	return err
 }
 
-
+//Zatvaranje ekrana tranzicije
 func (g *Transition) Close() {
 	if g != nil {
 		mix.HaltMusic()
@@ -119,7 +118,7 @@ func (g *Transition) Close() {
 		g.transitionSubtextTexture = nil
 	}
 }
-
+//Pokretanje tranzicije
 func (g *Transition) Run() ScreenID {
 	for !g.done {
 		g.Renderer.Clear()

@@ -2,7 +2,6 @@ package screens
 
 import (
 	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
 )
@@ -16,6 +15,7 @@ func NewGame(title string) *Game {
 	return &Game{}
 }
 
+//Inicijalizacija same igre, učitavanje prozora i ikonice programa
 func (g *Game) Init() error {
 	var err error
 	//naslov, hor i vert pozicija, sirina i visina u pikselima, prikazi odmah prozor(ako zelimo da ga povecamo -> |sdl.WINDOW_RESIZABLE)
@@ -35,7 +35,7 @@ func (g *Game) Init() error {
 	g.Window.SetIcon(iconSurf)
 	return err
 }
-
+//Zatvaranje prozora igre
 func (g *Game) Close() {
 	if g!=nil {
         g.Renderer.Destroy()

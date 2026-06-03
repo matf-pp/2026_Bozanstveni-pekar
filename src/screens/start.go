@@ -1,16 +1,14 @@
-package screens
+package screens //paket u kom se nalaze ekrani igre
 
 import (
 	"fmt"
-
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-// globalne konstante
+// globalne konstante za prozor
 const (
 	WindowWidth  = 800
 	WindowHeight = 600
@@ -23,10 +21,11 @@ type Screen interface {
 	Close()
 }
 
+//Tip za 
 type ScreenID int
 
 const (
-	StartScreen ScreenID = iota //konstanta za enum
+	StartScreen ScreenID = iota //iota se koristi za deklarisanje niza konstanti koje se automatski uvećavaju
 	GameOverScreen
 	ExitScreen
 	CongratsScreen
@@ -109,14 +108,14 @@ func NewStartGame(game *Game) *StartGame {
 		Game: game,
 	}
 }
-
+//Pomoćna metoda za učitavanje fonta
 func (g *Game) LoadFont(size int) (*ttf.Font, error) {
 	return ttf.OpenFont(
 		"fonts/PixelifySans-VariableFont_wght.ttf",
 		size,
 	)
 }
-
+//Pomoćna metoda za učitavanje teksta u textboxu
 func (g *StartGame) renderText(text string) error {
 	if text == "" {
 		if g.playerNameTexture != nil {
@@ -128,7 +127,7 @@ func (g *StartGame) renderText(text string) error {
 
 	font, err := g.LoadFont(30)
 	if err != nil {
-		return fmt.Errorf("error loading font %v\n", err)
+		return fmt.Errorf("error loading font %v", err)
 	}
 	defer font.Close()
 
@@ -145,12 +144,12 @@ func (g *StartGame) renderText(text string) error {
 
 	_, _, g.playerW, g.playerH, err = g.playerNameTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading player query %v\n", err)
+		return fmt.Errorf("error loading player query %v", err)
 	}
 
 	return err
 }
-
+//Pomoćna metoda za učitavanje dugmeta
 func (g *Game) LoadButton(imgPath string, x, y, w, h int32) (Button, error) {
 	texture, err := img.LoadTexture(g.Renderer, imgPath)
 	if err != nil {
@@ -193,17 +192,16 @@ func (g *Game) SetButtonText(b *Button, text string, fontSize int, color sdl.Col
 
 	return err
 }
-
+//Učitavanje sadržaja početnog ekrana
 func (g *StartGame) LoadMedia() error {
 	var err error
 	if g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
-		return fmt.Errorf("error loading texture %v\n", err)
+		return fmt.Errorf("error loading background texture %v", err)
 	}
 	titleFont, err := ttf.OpenFont("fonts/Early_GameBoy.ttf", 45)
 	if err != nil {
 		return err
 	}
-	//titleFont, _ := g.LoadFont(80)
 	newGameFont, _ := g.LoadFont(40)
 	newGame2Font, _ := g.LoadFont(40)
 	insertFont, _ := g.LoadFont(25)
@@ -213,38 +211,38 @@ func (g *StartGame) LoadMedia() error {
 	defer newGame2Font.Close()
 	defer insertFont.Close()
 	defer exitFont.Close()
-	//kreiramo tekst u sliku koju zelimo da nacrtamo
 
+	//kreiramo tekst u sliku koju zelimo da nacrtamo
 	titleSurf, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 69, G: 40, B: 18, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading title font surface %v", err)
 	}
 	titleSurf2, err := titleFont.RenderUTF8Blended("Bozanstveni pekar", sdl.Color{R: 220, G: 162, B: 94, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading title font surface %v", err)
 	}
 
 	newGameSurf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 69, G: 40, B: 18, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading newgame font surface %v", err)
 	}
 	newGame2Surf, err := newGameFont.RenderUTF8Blended("Start game", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading newgame font surface %v", err)
 	}
 
 	insertNameSurf, err := insertFont.RenderUTF8Blended("Insert name", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading insert font surface %v", err)
 	}
 
 	exitSurf, err := exitFont.RenderUTF8Blended("Press esc to exit", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading exit font surface %v", err)
 	}
 	enterSurf, err := exitFont.RenderUTF8Blended("Press enter to play", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
-		return fmt.Errorf("error loading font surface%v\n", err)
+		return fmt.Errorf("error loading enter font surface %v", err)
 	}
 
 	defer titleSurf.Free()
@@ -255,59 +253,56 @@ func (g *StartGame) LoadMedia() error {
 	defer exitSurf.Free()
 	defer enterSurf.Free()
 
-	//prikaz
+	//Prikaz tekstura
 	g.titleTexture, err = g.Renderer.CreateTextureFromSurface(titleSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating title font texture from surface %v", err)
 	}
 	g.title2Texture, err = g.Renderer.CreateTextureFromSurface(titleSurf2)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating title font texture from surface %v", err)
 	}
 	g.newGameTexture, err = g.Renderer.CreateTextureFromSurface(newGameSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating newgame font texture from surface %v", err)
 	}
 	g.newGame2Texture, err = g.Renderer.CreateTextureFromSurface(newGame2Surf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating newgame font texture from surface %v", err)
 	}
 	g.insertNameTexture, err = g.Renderer.CreateTextureFromSurface(insertNameSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating insertname font texture from surface %v", err)
 	}
 	g.bottomTextEscTexture, err = g.Renderer.CreateTextureFromSurface(exitSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating bottomtext esc font texture from surface %v", err)
 	}
 	g.bottomTextEnterTexture, err = g.Renderer.CreateTextureFromSurface(enterSurf)
 	if err != nil {
-		return fmt.Errorf("error loading font texture from surface%v\n", err)
+		return fmt.Errorf("error creating bottomtext enter font texture from surface %v", err)
 	}
 
-	//izvlacenje podataka za naslov i podnaslov
+	//Izvlacenje podataka za naslov i podnaslov
 	_, _, g.titleW, g.titleH, err = g.titleTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading title query %v\n", err)
+		return fmt.Errorf("error loading title query %v", err)
 	}
-
 	_, _, g.newGameW, g.newGameH, err = g.newGameTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading newgame query %v\n", err)
+		return fmt.Errorf("error loading newgame query %v", err)
 	}
-
 	_, _, g.insertNameW, g.insertNameH, err = g.insertNameTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading insert query %v\n", err)
+		return fmt.Errorf("error loading insert query %v", err)
 	}
-
 	_, _, g.bottomTextEscW, g.bottomTextEscH, err = g.bottomTextEscTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading exit query %v\n", err)
+		return fmt.Errorf("error loading exit query %v", err)
 	}
 	_, _, g.bottomTextEnterW, g.bottomTextEnterH, err = g.bottomTextEnterTexture.Query()
 	if err != nil {
-		return fmt.Errorf("error loading exit query %v\n", err)
+		return fmt.Errorf("error loading exit query %v", err)
 	}
 
 	//obicna dugmad
@@ -325,24 +320,24 @@ func (g *StartGame) LoadMedia() error {
 	g.playButton.hoverTexture = g.playHoverButton.texture
 	g.playButton.hoverTextTexture = g.playHoverButton.textBtnTexture
 
+	//Zvuk za klik na dugme
 	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
 	if err != nil {
-		return fmt.Errorf("error loading chunk %v\n", err)
+		return fmt.Errorf("error loading chunk %v", err)
 	}
-
+	//Pozadinska muzika; učitavanje 
 	g.Music, err = mix.LoadMUS("music/thunderstorm.mp3")
 	if err != nil {
-		return fmt.Errorf("error loading music %v\n", err)
+		return fmt.Errorf("error loading music %v", err)
 	}
-
+	//Pokretanje pozadinske muzike
 	err = g.Music.Play(-1)
 	if err != nil {
-		return fmt.Errorf("error playing music %v\n", err)
+		return fmt.Errorf("error playing music %v", err)
 	}
-
 	return err
 }
-
+//Zatvaranje početnog ekrana
 func (g *StartGame) Close() {
 	if g != nil {
 		mix.HaltMusic()
@@ -385,7 +380,7 @@ func (g *StartGame) Close() {
 	}
 }
 
-// pokretanje igrice - game loop
+//Pokretanje početnog ekrana
 func (g *StartGame) Run(ime *string) ScreenID {
 	var brojacSlova int32
 	for true {
