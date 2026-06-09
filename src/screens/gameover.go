@@ -165,7 +165,7 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	}
 	return err
 }
-
+//metoda za Eventove
 func (g *GameOver) Events() ScreenID {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {

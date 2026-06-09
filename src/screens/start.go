@@ -381,53 +381,62 @@ func (g *StartGame) Close() {
 	}
 }
 
-//Pokretanje početnog ekrana
-func (g *StartGame) Run(ime *string) ScreenID {
+//metoda za Eventove
+func (g *StartGame) Events(ime *string) ScreenID {
 	var brojacSlova int32
-	for true {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch e := event.(type) {
-			case *sdl.QuitEvent: //iks na prozoru ili crtl q
-				return ExitScreen
-			case *sdl.KeyboardEvent:
-				if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
-					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
-					case sdl.SCANCODE_ESCAPE: //esc
-						return ExitScreen
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch e := event.(type) {
+		case *sdl.QuitEvent: //iks na prozoru ili crtl q
+			return ExitScreen
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
+				switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
+				case sdl.SCANCODE_ESCAPE: //esc
+					return ExitScreen
 
-					case sdl.SCANCODE_BACKSPACE:
-						if len(g.playerName) > 0 {
-							g.playerName = g.playerName[:len(g.playerName)-1]
-							g.renderText(g.playerName)
-							brojacSlova--
-						}
-						//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
-					case sdl.SCANCODE_RETURN:
-						if g.playerName != "" {
-							*ime = g.playerName
-							return TransitionScreen
-						}
+				case sdl.SCANCODE_BACKSPACE:
+					if len(g.playerName) > 0 {
+						g.playerName = g.playerName[:len(g.playerName)-1]
+						g.renderText(g.playerName)
+						brojacSlova--
 					}
-				}
-			case *sdl.TextInputEvent:
-				if brojacSlova < 6 {
-					g.playerName += e.GetText()
-					g.renderText(g.playerName)
-					brojacSlova++
-				}
-			case *sdl.MouseButtonEvent:
-				if e.Type == sdl.MOUSEBUTTONDOWN {
-					mouseX := e.X
-					mouseY := e.Y
-
-					if g.playButton.isClicked(mouseX, mouseY) && g.playerName != "" {
-						g.ClickSound.Play(-1, 0)
-						fmt.Println("play clicked")
+					//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
+				case sdl.SCANCODE_RETURN:
+					if g.playerName != "" {
 						*ime = g.playerName
 						return TransitionScreen
 					}
 				}
 			}
+		case *sdl.TextInputEvent:
+			if brojacSlova < 6 {
+				g.playerName += e.GetText()
+				g.renderText(g.playerName)
+				brojacSlova++
+			}
+		case *sdl.MouseButtonEvent:
+			if e.Type == sdl.MOUSEBUTTONDOWN {
+				mouseX := e.X
+				mouseY := e.Y
+
+				if g.playButton.isClicked(mouseX, mouseY) && g.playerName != "" {
+					g.ClickSound.Play(-1, 0)
+					fmt.Println("play clicked")
+					*ime = g.playerName
+					return TransitionScreen
+				}
+			}
+		}
+	}
+	return StartScreen
+}
+
+//Pokretanje početnog ekrana
+func (g *StartGame) Run(ime *string) ScreenID {
+	for true {
+		nextScreen := g.Events(ime)
+		if nextScreen != StartScreen{
+			return nextScreen
 		}
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
 		g.Renderer.Copy(g.BackgroundImage, nil, nil) //nil je cela tekstura

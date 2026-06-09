@@ -164,6 +164,7 @@ func (g *Congrats) Close() {
 
 	}
 }
+//metoda za Eventove
 func (g *Congrats) Events() ScreenID {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
