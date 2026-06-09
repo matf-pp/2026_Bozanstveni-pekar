@@ -1,8 +1,9 @@
 package src
 
 import (
+	"crypto/rand"
 	"math"
-	"math/rand/v2"
+	"math/big"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -91,8 +92,8 @@ func (g *Levels) PomeriDantea(putevi []IzgradjeniPut) {
 
 func (g *Levels) RandomStartX() float64 {
 
-	brPuta := rand.N(len(g.OpsegVertikalnih))
+	brPuta, _ := rand.Int(rand.Reader, big.NewInt(int64(len(g.OpsegVertikalnih))))
 
 	// stavlja ga na x koord puta (+16 jer je to polovina sirine puta)
-	return float64(g.OpsegVertikalnih[brPuta].X + 16)
+	return float64(g.OpsegVertikalnih[brPuta.Int64()].X + 16)
 }
