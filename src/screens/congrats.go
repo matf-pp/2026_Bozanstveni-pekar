@@ -67,7 +67,6 @@ func (g *Congrats) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font%v\n", err)
 	}
-
 	defer screenTextFont.Close()
 	defer uWonFont.Close()
 
@@ -79,7 +78,6 @@ func (g *Congrats) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading font surface%v\n", err)
 	}
-
 	defer congratsSurf.Free()
 	defer uWonSurf.Free()
 
