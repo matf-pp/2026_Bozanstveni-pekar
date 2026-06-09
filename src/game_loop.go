@@ -1,12 +1,17 @@
 package src
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand/v2"
+	"math/big"
 
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 	"github.com/veandco/go-sdl2/sdl"
 )
+
+func swap(niz []int32, i int, j int) {
+	niz[i], niz[j] = niz[j], niz[i]
+}
 
 func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	horizontalPaths := []IzgradjeniPut{}
@@ -20,9 +25,13 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	}
 
 	g.OpsegTunela = [4]int32{70, 245, 445, 660}
-	indeksiTunel := rand.Perm(4) //randomizovanje tunela
+
+	// bira random element i swapuje ga sa nultim
+	pozDobrogUNizu, _ := rand.Int(rand.Reader, big.NewInt(int64(len(g.OpsegVertikalnih))))
+	swap(g.OpsegTunela[:], int(pozDobrogUNizu.Int64()), 0)
+
 	g.goodTunnelPos = sdl.Rect{
-		X: g.OpsegTunela[indeksiTunel[0]], Y: 550, W: 50, H: 50}
+		X: g.OpsegTunela[0], Y: 550, W: 50, H: 50}
 
 	g.dante.x = g.RandomStartX()
 	g.dante.y = 10
@@ -101,15 +110,15 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 		g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[1]], Y: 550, W: 60, H: 50,
+			X: g.OpsegTunela[1], Y: 550, W: 60, H: 50,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[2]], Y: 550, W: 60, H: 50,
+			X: g.OpsegTunela[2], Y: 550, W: 60, H: 50,
 		})
 
 		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[indeksiTunel[3]], Y: 550, W: 60, H: 50,
+			X: g.OpsegTunela[3], Y: 550, W: 60, H: 50,
 		})
 
 		if klik.kliknuto1 == true {
