@@ -26,35 +26,39 @@ type Dante struct {
 	poslednjiPut *IzgradjeniPut
 }
 
+func pomeriKoso(g *Levels) {
+	// izracuna pravac, normalizuje vektor, pomnozi ga sa brzinom i to doda na poziciju
+	dx := g.dante.ciljX - g.dante.x
+	dy := g.dante.ciljY - g.dante.y
+	duzina := math.Sqrt(dx*dx + dy*dy)
+
+	if duzina > 0 {
+		g.dante.x += (dx / duzina) * g.dante.brzina
+		g.dante.y += (dy / duzina) * g.dante.brzina
+	}
+
+	// ako je u blizini cilja
+	if math.Abs(g.dante.y-g.dante.ciljY) < 1 && math.Abs(g.dante.x-g.dante.ciljX) < 1 {
+
+		// zapamti put da bi ga ignorisali sledeci put da se ne bi vracao nazad istim putem
+		g.dante.poslednjiPut = g.dante.trenutniPut
+
+		g.dante.naKosomPutu = false
+		g.dante.trenutniPut = nil
+
+		// pomeri ga na dole za svaki slucaj da ne krene opet na isti put
+		g.dante.y += g.dante.brzina
+	}
+}
+
 func (g *Levels) PomeriDantea(putevi []IzgradjeniPut) {
 	// na kosom putu -> pomeraj ka ciljnoj tacki
 	if g.dante.naKosomPutu {
-
-		//izracuna pravac, normalizuje vektor, pomnozi ga sa brzinom i to doda na poziciju
-		dx := g.dante.ciljX - g.dante.x
-		dy := g.dante.ciljY - g.dante.y
-		duzina := math.Sqrt(dx*dx + dy*dy)
-
-		if duzina > 0 {
-			g.dante.x += (dx / duzina) * g.dante.brzina
-			g.dante.y += (dy / duzina) * g.dante.brzina
-		}
-
-		// ako je u blizini cilja
-		if math.Abs(g.dante.y-g.dante.ciljY) < 1 && math.Abs(g.dante.x-g.dante.ciljX) < 1 {
-
-			// zapamti put da bi ga ignorisali sledeci put da se ne bi vracao nazad istim putem
-			g.dante.poslednjiPut = g.dante.trenutniPut
-
-			g.dante.naKosomPutu = false
-			g.dante.trenutniPut = nil
-
-			// pomeri ga na dole za svaki slucaj da ne krene opet na isti put
-			g.dante.y += g.dante.brzina
-		}
+		pomeriKoso(g)
 		return
 	}
 
+	// ulazak na kosi put
 	// prodji kroz sve staze i proveri na kojoj se nalazimo
 	for i := range putevi {
 		p := &putevi[i]
