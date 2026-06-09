@@ -18,6 +18,7 @@ const (
 type Screen interface {
 	LoadMedia() error
 	Run() ScreenID // vraca prelaz na sledeci ekran
+	Events() ScreenID
 	Close()
 }
 

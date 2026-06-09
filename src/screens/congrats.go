@@ -164,33 +164,41 @@ func (g *Congrats) Close() {
 
 	}
 }
+func (g *Congrats) Events() ScreenID {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch e := event.(type) {
+		case *sdl.QuitEvent: //iks na prozoru ili crtl q
+			return ExitScreen
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
+				switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
+				case sdl.SCANCODE_ESCAPE: //esc
+					return ExitScreen
+				}
+			}
+		case *sdl.MouseButtonEvent:
+			if e.Type == sdl.MOUSEBUTTONDOWN {
+				mouseX := e.X
+				mouseY := e.Y
+
+				if g.playAgainButton.isClicked(mouseX, mouseY) {
+					fmt.Println("play again clicked")
+					g.ClickSound.Play(-1, 0)
+					return StartScreen
+				}
+
+			}
+		}
+	}
+	return CongratsScreen
+}
+
 //Pokretanje ekrana za gubitak
 func (g *Congrats) Run() ScreenID {
 	for true {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch e := event.(type) {
-			case *sdl.QuitEvent: //iks na prozoru ili crtl q
-				return ExitScreen
-			case *sdl.KeyboardEvent:
-				if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
-					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
-					case sdl.SCANCODE_ESCAPE: //esc
-						return ExitScreen
-					}
-				}
-			case *sdl.MouseButtonEvent:
-				if e.Type == sdl.MOUSEBUTTONDOWN {
-					mouseX := e.X
-					mouseY := e.Y
-
-					if g.playAgainButton.isClicked(mouseX, mouseY) {
-						fmt.Println("play again clicked")
-						g.ClickSound.Play(-1, 0)
-						return StartScreen
-					}
-
-				}
-			}
+		nextScreen := g.Events()
+		if nextScreen != CongratsScreen{
+			return nextScreen
 		}
 		g.Renderer.Clear() //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
 

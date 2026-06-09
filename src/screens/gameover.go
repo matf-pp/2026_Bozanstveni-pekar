@@ -165,32 +165,40 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	}
 	return err
 }
+
+func (g *GameOver) Events() ScreenID {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch e := event.(type) {
+		case *sdl.QuitEvent: //iks na prozoru ili ctrl q
+			return ExitScreen
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
+				switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
+				case sdl.SCANCODE_ESCAPE: //esc
+					return ExitScreen
+				}
+			}
+		case *sdl.MouseButtonEvent:
+			if e.Type == sdl.MOUSEBUTTONDOWN {
+				mouseX := e.X
+				mouseY := e.Y
+				if g.tryAgainButton.isClicked(mouseX, mouseY) {
+					fmt.Println("try again clicked")
+					g.ClickSound.Play(-1, 0)
+					return StartScreen
+				}
+			}
+		}
+	}
+	return GameOverScreen
+}
+
 //Pokretanje ekrana za gubitak igre
 func (g *GameOver) Run() ScreenID {
 	for true {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch e := event.(type) {
-			case *sdl.QuitEvent: //iks na prozoru ili crtl q
-				return ExitScreen
-			case *sdl.KeyboardEvent:
-				if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
-					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
-					case sdl.SCANCODE_ESCAPE: //esc
-						return ExitScreen
-					}
-				}
-			case *sdl.MouseButtonEvent:
-				if e.Type == sdl.MOUSEBUTTONDOWN {
-					mouseX := e.X
-					mouseY := e.Y
-
-					if g.tryAgainButton.isClicked(mouseX, mouseY) {
-						fmt.Println("try again clicked")
-						g.ClickSound.Play(-1, 0)
-						return StartScreen
-					}
-				}
-			}
+		nextScreen := g.Events()
+		if nextScreen != GameOverScreen{
+			return nextScreen
 		}
 		g.Renderer.Clear()
 
@@ -257,9 +265,9 @@ func (g *GameOver) Run() ScreenID {
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
 	}
-
 	return ExitScreen
 }
+
 //Zatvaranje ekrana za gubitak igre
 func (g *GameOver) Close() {
 	if g != nil {
