@@ -88,6 +88,122 @@ func (g *Levels) handleMouseClick(e *sdl.MouseButtonEvent, klik *Kliknut) {
 	}
 }
 
+func (g *Levels) renderLevel() {
+	g.Game.Renderer.Clear()
+	g.Game.Renderer.Copy(g.BaseGame.BackgroundImage, nil, nil)
+
+	g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+		X: 82, Y: 0, W: 32, H: 580,
+	})
+
+	g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+		X: 257, Y: 0, W: 32, H: 580,
+	})
+
+	g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+		X: 457, Y: 0, W: 32, H: 580,
+	})
+
+	g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
+		X: 672, Y: 0, W: 32, H: 580,
+	})
+
+	g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
+
+	g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+		X: g.OpsegTunela[1], Y: 550, W: 60, H: 50,
+	})
+
+	g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+		X: g.OpsegTunela[2], Y: 550, W: 60, H: 50,
+	})
+
+	g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
+		X: g.OpsegTunela[3], Y: 550, W: 60, H: 50,
+	})
+}
+
+// Pravljenje kosog puta prilikom drugog klika
+func (g *Levels) dodajKosiPut(klik *Kliknut, horizontalPaths *[]IzgradjeniPut) {
+	centriranX1 := g.CentarVertPuta(klik.klik1x, klik.klik1y)
+	centriranX2 := g.CentarVertPuta(klik.klik2x, klik.klik2y)
+
+	flagDaLiDodatiPut := true
+
+	for _, p := range *horizontalPaths {
+
+		//ako put koji hocemo da dodamo i trenutni put iz niza spajaju iste cevi
+		//brojevi 1 i 2 u X1 i X2 samo oznacavaju koji je prvi pritisnut tkd moramo da proverimo obe kombinacije
+
+		if centriranX1 == p.X1 && centriranX2 == p.X2 {
+			// ako se putevi seku: zabrani dodavanje
+			if (klik.klik1y < p.Y1 && klik.klik2y > p.Y2) || (klik.klik1y > p.Y1 && klik.klik2y < p.Y2) {
+				flagDaLiDodatiPut = false
+				break
+			}
+		} else if centriranX1 == p.X2 && centriranX2 == p.X1 { // druga kombinacija
+			// ako se putevi seku: zabrani dodavanje
+			if (klik.klik1y < p.Y2 && klik.klik2y > p.Y1) || (klik.klik1y > p.Y2 && klik.klik2y < p.Y1) {
+				flagDaLiDodatiPut = false
+				break
+			}
+		}
+	}
+
+	if flagDaLiDodatiPut == true {
+		g.Game.Renderer.Copy(g.krug, nil, &sdl.Rect{
+			X: klik.klik1x - 8, Y: klik.klik1y - 8, W: 15, H: 15,
+		})
+
+		cX, cY, sp, vp, u := g.NacrtajPut(centriranX1, klik.klik1y, centriranX2, klik.klik2y)
+
+		*horizontalPaths = append(*horizontalPaths, IzgradjeniPut{
+			centerX: cX, centerY: cY, sirinaPuta: sp, visinaPuta: vp, ugao: u,
+			X1: centriranX1, Y1: klik.klik1y, // koord prve tacke
+			X2: centriranX2, Y2: klik.klik2y, // koord druge tacke
+		})
+	}
+	klik.brKlikova = 0
+	klik.kliknuto1 = false
+	klik.kliknuto2 = false
+}
+
+func (g *Levels) uspesnostKretnje(score *int) (bool, screens.ScreenID, bool) {
+	tunel := g.goodTunnelPos
+
+	// ova provera za kolizuju je vljd dovoljno precizna
+	if int32(g.dante.x) >= tunel.X && int32(g.dante.x) <= (tunel.X+tunel.W) && int32(g.dante.y) >= tunel.Y {
+		// stigao u dobar tunel -> uvecamo score
+		g.brojacDobrihTunela++
+		*score++
+		fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
+
+		//breakuje petlju da bi otisao na naredni nivo
+		if g.brojacDobrihTunela >= 5 {
+			return true, 0, true
+		}
+
+		//vrati dantea na vrh random vertikalnog puta i resetuj kretnju
+		g.initDante()
+
+		// neka vrednost za ubrzavanje igraca koja radi dobro
+		// smanji na 2 ili 1 ako mislite da je previse brzo
+		g.frameTime -= 3
+
+		return false, 0, true
+	}
+
+	// provera da li je umro, odnosno da li se nalazi ispod dobrog tunela, a nije usao u njega
+	if int32(g.dante.y) >= tunel.Y+tunel.H/2 {
+		fmt.Println("umro")
+
+		g.brojacDobrihTunela = 0
+
+		return false, screens.GameOverScreen, true
+	}
+	return false, 0, false
+}
+
 func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	horizontalPaths := []IzgradjeniPut{}
 	var klik Kliknut
@@ -95,138 +211,41 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	g.initDante()
 
 	for true {
-		//Eventovi
+		// Eventovi
 		nextScreen, shouldReturn := g.handleEvents(&horizontalPaths, &klik, ekran)
 		if shouldReturn {
 			return nextScreen
 		}
 
-		g.Game.Renderer.Clear()
-		g.Game.Renderer.Copy(g.BaseGame.BackgroundImage, nil, nil)
+		// Renderovanje pozadine i nivoa
+		g.renderLevel()
 
-		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
-			X: 82, Y: 0, W: 32, H: 580,
-		})
-
-		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
-			X: 257, Y: 0, W: 32, H: 580,
-		})
-
-		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
-			X: 457, Y: 0, W: 32, H: 580,
-		})
-
-		g.Game.Renderer.Copy(g.verticalPath, nil, &sdl.Rect{
-			X: 672, Y: 0, W: 32, H: 580,
-		})
-
-		g.Game.Renderer.Copy(g.goodTunnel, nil, &g.goodTunnelPos)
-
-		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[1], Y: 550, W: 60, H: 50,
-		})
-
-		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[2], Y: 550, W: 60, H: 50,
-		})
-
-		g.Game.Renderer.Copy(g.badTunnel, nil, &sdl.Rect{
-			X: g.OpsegTunela[3], Y: 550, W: 60, H: 50,
-		})
-
+		//Funkcionalnost klikova misa
 		if klik.kliknuto1 == true {
+			//Crta krug na kliknutom pikselu pri prvom kliku
 			g.Game.Renderer.Copy(g.krug, nil, &sdl.Rect{
 				X: klik.klik1x - 8, Y: klik.klik1y - 8, W: 15, H: 15,
 			})
 		}
 		if klik.kliknuto2 == true {
-
-			centriranX1 := g.CentarVertPuta(klik.klik1x, klik.klik1y)
-			centriranX2 := g.CentarVertPuta(klik.klik2x, klik.klik2y)
-
-			flagDaLiDodatiPut := true
-
-			for i := range horizontalPaths {
-				p := horizontalPaths[i]
-
-				//ako put koji hocemo da dodamo i trenutni put iz niza spajaju iste cevi
-				//brojevi 1 i 2 u X1 i X2 samo oznacavaju koji je prvi pritisnut tkd moramo da proverimo obe kombinacije
-
-				if centriranX1 == p.X1 && centriranX2 == p.X2 {
-					// ako se putevi seku: zabrani dodavanje
-					if (klik.klik1y < p.Y1 && klik.klik2y > p.Y2) || (klik.klik1y > p.Y1 && klik.klik2y < p.Y2) {
-						flagDaLiDodatiPut = false
-						break
-					}
-				} else if centriranX1 == p.X2 && centriranX2 == p.X1 { // druga kombinacija
-					// ako se putevi seku: zabrani dodavanje
-					if (klik.klik1y < p.Y2 && klik.klik2y > p.Y1) || (klik.klik1y > p.Y2 && klik.klik2y < p.Y1) {
-						flagDaLiDodatiPut = false
-						break
-					}
-				}
-			}
-
-			if flagDaLiDodatiPut == true {
-				g.Game.Renderer.Copy(g.krug, nil, &sdl.Rect{
-					X: klik.klik1x - 8, Y: klik.klik1y - 8, W: 15, H: 15,
-				})
-
-				cX, cY, sp, vp, u := g.NacrtajPut(centriranX1, klik.klik1y, centriranX2, klik.klik2y)
-
-				horizontalPaths = append(horizontalPaths, IzgradjeniPut{
-					centerX: cX, centerY: cY, sirinaPuta: sp, visinaPuta: vp, ugao: u,
-					X1: centriranX1, Y1: klik.klik1y, // koord prve tacke
-					X2: centriranX2, Y2: klik.klik2y, // koord druge tacke
-				})
-			}
-
-			klik.brKlikova = 0
-			klik.kliknuto1 = false
-			klik.kliknuto2 = false
+			//Pravi kosi put pri drugom kliku
+			g.dodajKosiPut(&klik, &horizontalPaths)
 		}
 
 		g.RenderujKosePuteve(horizontalPaths)
 
 		g.PomeriDantea(horizontalPaths)
 
-		tunel := g.goodTunnelPos
-
-		// ova provera za kolizuju je vljd dovoljno precizna
-		if int32(g.dante.x) >= tunel.X && int32(g.dante.x) <= (tunel.X+tunel.W) && int32(g.dante.y) >= tunel.Y {
-			// stigao u dobar tunel -> uvecamo score
-			g.brojacDobrihTunela++
-			*score++
-			fmt.Printf("skor: %d\n", g.brojacDobrihTunela)
-
-			//breakuje petlju da bi otisao na drugi nivo jer ispod petlje pise retunr nesto nesto level2
-			if g.brojacDobrihTunela >= 5 {
-				break
-			}
-
-			//vrati dantea u random tunel na vrh i resetuj sve ove gluposti
-			g.dante.x = g.RandomStartX()
-			g.dante.y = 10
-			g.dante.ciljX = g.dante.x
-			g.dante.ciljY = g.dante.y
-			g.dante.naKosomPutu = false
-			g.dante.trenutniPut = nil
-			g.dante.poslednjiPut = nil
-
-			// neka vrednost za ubrzavanje igraca koja radi dobro
-			// smanji na 2 ili 1 ako mislite da je previse brzo
-			g.frameTime -= 3
-
-			continue
+		// Provera kolizija i uspesnosti dolaska do cilja
+		shouldBreak, screenResult, shouldContinue := g.uspesnostKretnje(score)
+		if shouldBreak {
+			break
 		}
-
-		// provera da li je umro, odnosno da li se nalazi ispod dobrog tunela, a nije usao u njega
-		if int32(g.dante.y) >= tunel.Y+tunel.H/2 {
-			fmt.Println("umro")
-
-			g.brojacDobrihTunela = 0
-
+		if screenResult == screens.GameOverScreen {
 			return screens.GameOverScreen
+		}
+		if shouldContinue {
+			continue
 		}
 
 		g.Game.Renderer.Copy(g.dante.tekstura, nil, &sdl.Rect{

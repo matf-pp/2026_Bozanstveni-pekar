@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
 	"github.com/veandco/go-sdl2/img"
@@ -16,11 +17,11 @@ const (
 )
 
 type LevelData struct {
-	ImgPath string
+	ImgPath    string
 	NextScreen screens.ScreenID
-	CircleVar string
-	LevelNum int
-	LevelStr string
+	CircleVar  string
+	LevelNum   int
+	LevelStr   string
 }
 
 func initSDL() error {
@@ -66,18 +67,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
-	
+
 	var score int
 	var ime string
-	var levels = map[screens.ScreenID]LevelData {
-		screens.Level1Screen:{"images/lvl1.png",screens.Level2Screen,"drugi",2,"Pozuda"},
-		screens.Level2Screen:{"images/lvl2.png",screens.Level3Screen,"treci",3,"Prozdrljivost"},
-		screens.Level3Screen:{"images/lvl3.png",screens.Level4Screen,"cetvrti",4,"Pohlepa"},
-		screens.Level4Screen:{"images/lvl4.png",screens.Level5Screen,"peti",5,"Lenjost"},
-		screens.Level5Screen:{"images/lvl5.png",screens.Level6Screen,"sesti",6,"Jeres"},
-		screens.Level6Screen:{"images/lvl6.png",screens.Level7Screen,"sedmi",7,"Nasilje"},
-		screens.Level7Screen:{"images/lvl7.png",screens.Level8Screen,"osmi",8,"Prevara"},
-		screens.Level8Screen:{"images/lvl8.png",screens.Level9Screen,"deveti",9,"Izdaja"},
+	var levels = map[screens.ScreenID]LevelData{
+		screens.Level1Screen: {"images/lvl1.png", screens.Level2Screen, "drugi", 2, "Pozuda"},
+		screens.Level2Screen: {"images/lvl2.png", screens.Level3Screen, "treci", 3, "Prozdrljivost"},
+		screens.Level3Screen: {"images/lvl3.png", screens.Level4Screen, "cetvrti", 4, "Pohlepa"},
+		screens.Level4Screen: {"images/lvl4.png", screens.Level5Screen, "peti", 5, "Lenjost"},
+		screens.Level5Screen: {"images/lvl5.png", screens.Level6Screen, "sesti", 6, "Jeres"},
+		screens.Level6Screen: {"images/lvl6.png", screens.Level7Screen, "sedmi", 7, "Nasilje"},
+		screens.Level7Screen: {"images/lvl7.png", screens.Level8Screen, "osmi", 8, "Prevara"},
+		screens.Level8Screen: {"images/lvl8.png", screens.Level9Screen, "deveti", 9, "Izdaja"},
 	}
 
 	var levelVar screens.ScreenID
@@ -89,6 +90,7 @@ func main() {
 	for screen != screens.ExitScreen {
 		switch screen {
 		case screens.StartScreen:
+			score = 0
 			start := screens.NewStartGame(engine)
 			start.LoadMedia()
 			screen = start.Run(&ime)
@@ -117,21 +119,21 @@ func main() {
 			transition := screens.NewTransition(engine, levelVar, circleVar, levelNum, levelStr)
 			transition.LoadMedia()
 			screen = transition.Run()
-		
+
 		//ostali nivoi
 		default:
 			if data, exists := levels[screen]; exists {
 				lvl := src.NewLevel(engine)
 				lvl.LoadMedia(data.ImgPath)
 				screen = lvl.Run(screens.TransitionScreen, &score)
-				
+
 				if screen == screens.TransitionScreen {
 					levelVar = data.NextScreen
 					circleVar = data.CircleVar
 					levelNum = data.LevelNum
 					levelStr = data.LevelStr
 				}
-        	}
+			}
 		}
 	}
 }
