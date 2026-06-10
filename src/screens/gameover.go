@@ -3,17 +3,18 @@ package screens
 import (
 	"fmt"
 	"strconv"
+
 	"github.com/veandco/go-sdl2/img"
-	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/mix"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 type GameOver struct {
 	*Game
 	BaseGame
 	screenTextTexture *sdl.Texture
-	screenTextW int32
-	screenTextH int32
+	screenTextW       int32
+	screenTextH       int32
 
 	smiley  *sdl.Texture
 	smileyW int32
@@ -26,8 +27,8 @@ type GameOver struct {
 	rezultatW    int32
 	rezultatH    int32
 
-	leb *sdl.Texture
-	blur    *sdl.Texture
+	leb  *sdl.Texture
+	blur *sdl.Texture
 }
 
 func NewGameOver(game *Game) *GameOver {
@@ -35,7 +36,8 @@ func NewGameOver(game *Game) *GameOver {
 		Game: game,
 	}
 }
-//Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
+
+// Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
 func (g *GameOver) CreateBlur() error {
 	var err error
 
@@ -55,7 +57,8 @@ func (g *GameOver) CreateBlur() error {
 
 	return nil
 }
-//Učitavanje sadržaja ekrana za gubitak
+
+// Učitavanje sadržaja ekrana za gubitak
 func (g *GameOver) LoadMedia(score int, ime string) error {
 	var err error
 	if g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
@@ -124,7 +127,7 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 
 	//obicno dugme
 	g.tryAgainButton, err = g.LoadButton(
-		"images/button.png", 300, 300, 200, 200,
+		"images/button.png", 330, 415, 150, 55,
 	)
 	if err != nil {
 		return err
@@ -133,7 +136,7 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 
 	//hover dugme
 	g.tryAgainHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 300, 300, 200, 200,
+		"images/buttonHover.png", 330, 415, 150, 55,
 	)
 	g.SetButtonText(&g.tryAgainHoverButton, "try again", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -165,7 +168,8 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	}
 	return err
 }
-//metoda za Eventove
+
+// metoda za Eventove
 func (g *GameOver) Events() ScreenID {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
@@ -193,11 +197,11 @@ func (g *GameOver) Events() ScreenID {
 	return GameOverScreen
 }
 
-//Pokretanje ekrana za gubitak igre
+// Pokretanje ekrana za gubitak igre
 func (g *GameOver) Run() ScreenID {
 	for true {
 		nextScreen := g.Events()
-		if nextScreen != GameOverScreen{
+		if nextScreen != GameOverScreen {
 			return nextScreen
 		}
 		g.Renderer.Clear()
@@ -230,9 +234,9 @@ func (g *GameOver) Run() ScreenID {
 
 		g.Renderer.Copy(g.leb, nil, &sdl.Rect{
 			X: (WindowWidth-g.rezultatW)/2 - 40 + g.rezultatW,
-			Y: 57,
-			W: 80,
-			H: 80})
+			Y: 50,
+			W: g.rezultatH,
+			H: g.rezultatH})
 
 		mouseX, mouseY, _ := sdl.GetMouseState()
 		g.tryAgainButton.hovered = g.tryAgainButton.isClicked(mouseX, mouseY)
@@ -258,7 +262,7 @@ func (g *GameOver) Run() ScreenID {
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.tryAgainButton.rect.X + (g.tryAgainButton.rect.W-tw)/2,
-			Y: g.tryAgainButton.rect.Y + (g.tryAgainButton.rect.H-th)/2 + 30,
+			Y: g.tryAgainButton.rect.Y + (g.tryAgainButton.rect.H-th)/2,
 			W: tw,
 			H: th,
 		})
@@ -268,7 +272,7 @@ func (g *GameOver) Run() ScreenID {
 	return ExitScreen
 }
 
-//Zatvaranje ekrana za gubitak igre
+// Zatvaranje ekrana za gubitak igre
 func (g *GameOver) Close() {
 	if g != nil {
 		mix.HaltMusic()

@@ -2,9 +2,10 @@ package screens //paket u kom se nalaze ekrani igre
 
 import (
 	"fmt"
+
 	"github.com/veandco/go-sdl2/img"
-	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/mix"
+	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
@@ -22,7 +23,7 @@ type Screen interface {
 	Close()
 }
 
-//Tip za 
+// Tip za
 type ScreenID int
 
 const (
@@ -109,14 +110,16 @@ func NewStartGame(game *Game) *StartGame {
 		Game: game,
 	}
 }
-//Pomoćna metoda za učitavanje fonta
+
+// Pomoćna metoda za učitavanje fonta
 func (g *Game) LoadFont(size int) (*ttf.Font, error) {
 	return ttf.OpenFont(
 		"fonts/PixelifySans-VariableFont_wght.ttf",
 		size,
 	)
 }
-//Pomoćna metoda za učitavanje teksta u textboxu
+
+// Pomoćna metoda za učitavanje teksta u textboxu
 func (g *StartGame) renderText(text string) error {
 	if text == "" {
 		if g.playerNameTexture != nil {
@@ -150,7 +153,8 @@ func (g *StartGame) renderText(text string) error {
 
 	return err
 }
-//Pomoćna metoda za učitavanje dugmeta
+
+// Pomoćna metoda za učitavanje dugmeta
 func (g *Game) LoadButton(imgPath string, x, y, w, h int32) (Button, error) {
 	texture, err := img.LoadTexture(g.Renderer, imgPath)
 	if err != nil {
@@ -193,7 +197,8 @@ func (g *Game) SetButtonText(b *Button, text string, fontSize int, color sdl.Col
 
 	return err
 }
-//Učitavanje sadržaja početnog ekrana
+
+// Učitavanje sadržaja početnog ekrana
 func (g *StartGame) LoadMedia() error {
 	var err error
 	if g.BaseGame.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg"); err != nil {
@@ -308,13 +313,13 @@ func (g *StartGame) LoadMedia() error {
 
 	//obicna dugmad
 	g.playButton, err = g.LoadButton(
-		"images/button.png", 300, 380, 200, 200,
+		"images/button.png", 325, 485, 150, 55,
 	)
 	g.SetButtonText(&g.playButton, "play", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 300, 380, 200, 200,
+		"images/buttonHover.png", 325, 485, 150, 55,
 	)
 	g.SetButtonText(&g.playHoverButton, "play", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -326,7 +331,7 @@ func (g *StartGame) LoadMedia() error {
 	if err != nil {
 		return fmt.Errorf("error loading chunk %v", err)
 	}
-	//Pozadinska muzika; učitavanje 
+	//Pozadinska muzika; učitavanje
 	g.Music, err = mix.LoadMUS("music/thunderstorm.mp3")
 	if err != nil {
 		return fmt.Errorf("error loading music %v", err)
@@ -338,7 +343,8 @@ func (g *StartGame) LoadMedia() error {
 	}
 	return err
 }
-//Zatvaranje početnog ekrana
+
+// Zatvaranje početnog ekrana
 func (g *StartGame) Close() {
 	if g != nil {
 		mix.HaltMusic()
@@ -378,12 +384,12 @@ func (g *StartGame) Close() {
 
 		g.BackgroundImage.Destroy()
 		g.BackgroundImage = nil
+
 	}
 }
 
-//metoda za Eventove
-func (g *StartGame) Events(ime *string) ScreenID {
-	var brojacSlova int32
+// metoda za Eventove
+func (g *StartGame) Events(ime *string, brojacSlova *int32) ScreenID {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
 		case *sdl.QuitEvent: //iks na prozoru ili crtl q
@@ -398,7 +404,7 @@ func (g *StartGame) Events(ime *string) ScreenID {
 					if len(g.playerName) > 0 {
 						g.playerName = g.playerName[:len(g.playerName)-1]
 						g.renderText(g.playerName)
-						brojacSlova--
+						*brojacSlova--
 					}
 					//nema potrbe da rucno pomeramo kursor nazad jer je kursor zapravo duzina teksta
 				case sdl.SCANCODE_RETURN:
@@ -409,10 +415,10 @@ func (g *StartGame) Events(ime *string) ScreenID {
 				}
 			}
 		case *sdl.TextInputEvent:
-			if brojacSlova < 6 {
+			if *brojacSlova < 6 {
 				g.playerName += e.GetText()
 				g.renderText(g.playerName)
-				brojacSlova++
+				*brojacSlova++
 			}
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
@@ -431,11 +437,12 @@ func (g *StartGame) Events(ime *string) ScreenID {
 	return StartScreen
 }
 
-//Pokretanje početnog ekrana
+// Pokretanje početnog ekrana
 func (g *StartGame) Run(ime *string) ScreenID {
+	var brojacSlova int32
 	for true {
-		nextScreen := g.Events(ime)
-		if nextScreen != StartScreen{
+		nextScreen := g.Events(ime, &brojacSlova)
+		if nextScreen != StartScreen {
 			return nextScreen
 		}
 		g.Renderer.Clear()                           //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
@@ -556,7 +563,7 @@ func (g *StartGame) Run(ime *string) ScreenID {
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.playButton.rect.X + (g.playButton.rect.W-tw)/2,
-			Y: g.playButton.rect.Y + (g.playButton.rect.H-th)/2 + 30,
+			Y: g.playButton.rect.Y + (g.playButton.rect.H-th)/2,
 			W: tw,
 			H: th,
 		})

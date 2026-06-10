@@ -2,6 +2,7 @@ package screens
 
 import (
 	"fmt"
+
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
@@ -32,7 +33,8 @@ func NewCongrats(game *Game) *Congrats {
 		Game: game,
 	}
 }
-//Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
+
+// Pomoćna metoda za kreiranje blur overlay-a - za ekran kada pobedi igrač
 func (g *Congrats) CreateBlur() error {
 	var err error
 
@@ -52,7 +54,8 @@ func (g *Congrats) CreateBlur() error {
 
 	return nil
 }
-//Učitavanje sadržaja ekrana za pobedu
+
+// Učitavanje sadržaja ekrana za pobedu
 func (g *Congrats) LoadMedia() error {
 	var err error
 	g.BackgroundImage, err = img.LoadTexture(g.Renderer, "images/background.jpg")
@@ -102,13 +105,13 @@ func (g *Congrats) LoadMedia() error {
 
 	//obicna dugmad
 	g.playAgainButton, err = g.LoadButton(
-		"images/button.png", 300, 300, 200, 200,
+		"images/button.png", 330, 415, 150, 55,
 	)
 	g.SetButtonText(&g.playAgainButton, "play again", 20, sdl.Color{R: 0, G: 0, B: 0, A: 255})
 
 	//hover dugmad
 	g.playAgainHoverButton, err = g.LoadButton(
-		"images/buttonHover.png", 300, 300, 200, 200,
+		"images/buttonHover.png", 330, 415, 150, 55,
 	)
 	g.SetButtonText(&g.playAgainHoverButton, "play again", 20, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 
@@ -137,7 +140,8 @@ func (g *Congrats) LoadMedia() error {
 
 	return err
 }
-//Zatvaranje ekrana za gubitak
+
+// Zatvaranje ekrana za gubitak
 func (g *Congrats) Close() {
 	if g != nil {
 		mix.HaltMusic()
@@ -162,7 +166,8 @@ func (g *Congrats) Close() {
 
 	}
 }
-//metoda za Eventove
+
+// metoda za Eventove
 func (g *Congrats) Events() ScreenID {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
@@ -192,11 +197,11 @@ func (g *Congrats) Events() ScreenID {
 	return CongratsScreen
 }
 
-//Pokretanje ekrana za gubitak
+// Pokretanje ekrana za gubitak
 func (g *Congrats) Run() ScreenID {
 	for true {
 		nextScreen := g.Events()
-		if nextScreen != CongratsScreen{
+		if nextScreen != CongratsScreen {
 			return nextScreen
 		}
 		g.Renderer.Clear() //svaki frame pocinje 'praznim' ekranom i brise se sve sto je bilo sa prethodnog framea
@@ -246,7 +251,7 @@ func (g *Congrats) Run() ScreenID {
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.playAgainButton.rect.X + (g.playAgainButton.rect.W-tw)/2,
-			Y: g.playAgainButton.rect.Y + (g.playAgainButton.rect.H-th)/2 + 30,
+			Y: g.playAgainButton.rect.Y + (g.playAgainButton.rect.H-th)/2,
 			W: tw,
 			H: th,
 		})

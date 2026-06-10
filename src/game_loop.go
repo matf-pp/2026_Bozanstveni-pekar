@@ -13,26 +13,25 @@ func swap(niz []int32, i int, j int) {
 	niz[i], niz[j] = niz[j], niz[i]
 }
 
-func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
-	horizontalPaths := []IzgradjeniPut{}
-	var klik Kliknut
-
+// Postavlja dobar tunel nasumicno na pocetku svakog nivoa
+func (g *Levels) dobarTunel() {
 	g.OpsegVertikalnih = [4]sdl.Rect{
 		{X: 82, Y: 0, W: 32, H: 580},
 		{X: 257, Y: 0, W: 32, H: 580},
 		{X: 457, Y: 0, W: 32, H: 580},
 		{X: 672, Y: 0, W: 32, H: 580},
 	}
-
 	g.OpsegTunela = [4]int32{70, 245, 445, 660}
 
 	// bira random element i swapuje ga sa nultim
 	pozDobrogUNizu, _ := rand.Int(rand.Reader, big.NewInt(int64(len(g.OpsegVertikalnih))))
 	swap(g.OpsegTunela[:], int(pozDobrogUNizu.Int64()), 0)
 
-	g.goodTunnelPos = sdl.Rect{
-		X: g.OpsegTunela[0], Y: 550, W: 50, H: 50}
+	g.goodTunnelPos = sdl.Rect{X: g.OpsegTunela[0], Y: 550, W: 50, H: 50}
+}
 
+// Inicijalizuje Dantea
+func (g *Levels) initDante() {
 	g.dante.x = g.RandomStartX()
 	g.dante.y = 10
 	g.dante.ciljX = g.dante.x
@@ -40,52 +39,66 @@ func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
 	g.dante.naKosomPutu = false
 	g.dante.trenutniPut = nil
 	g.dante.poslednjiPut = nil
+}
 
-	for true {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch e := event.(type) {
-			case *sdl.QuitEvent: //iks na prozoru ili crtl q
-				return screens.ExitScreen
-			case *sdl.KeyboardEvent:
-				if e.Type == sdl.KEYDOWN { //pritisnuto dugme na tastaturi
-					switch e.Keysym.Scancode { //koje tacno dugme je u pitanju
-					case sdl.SCANCODE_ESCAPE: //esc
-						return screens.ExitScreen
-					case sdl.SCANCODE_R:
-						horizontalPaths = []IzgradjeniPut{}
-						g.dante.x = g.RandomStartX()
-						g.dante.y = 10
-						g.dante.ciljX = g.dante.x
-						g.dante.ciljY = g.dante.y
-						g.dante.naKosomPutu = false
-						g.dante.trenutniPut = nil
-						g.dante.poslednjiPut = nil
-					case sdl.SCANCODE_T:
-						return ekran
-					}
-				}
-			case *sdl.MouseButtonEvent:
-				if e.Type == sdl.MOUSEBUTTONDOWN {
-					if e.Clicks == 1 && e.Button == sdl.BUTTON_LEFT && (g.KlikUnutra(e.X, e.Y) == true) {
-						if klik.brKlikova == 0 {
-							klik.klik1x = e.X
-							klik.klik1y = e.Y
-							klik.brKlikova++
-							klik.kliknuto1 = true
+// Prati eventove tastera i klika misa
+func (g *Levels) handleEvents(paths *[]IzgradjeniPut, klik *Kliknut, ekran screens.ScreenID) (screens.ScreenID, bool) {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch e := event.(type) {
+		case *sdl.QuitEvent:
+			return screens.ExitScreen, true
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN {
+				switch e.Keysym.Scancode {
+				case sdl.SCANCODE_ESCAPE:
+					return screens.ExitScreen, true
 
-						} else if klik.brKlikova == 1 && (g.DozvoljenoSpajanje(klik.klik1x, klik.klik1y, e.X, e.Y) == true) {
-							klik.klik2x = e.X
-							klik.klik2y = e.Y
-							klik.brKlikova++
-							klik.kliknuto2 = true
-
-						}
-					} else if e.Clicks == 1 && e.Button == sdl.BUTTON_RIGHT {
-						klik.brKlikova = 0
-						klik.kliknuto1 = false
-					}
+				// Pomocni kod za debagovanje
+				case sdl.SCANCODE_R:
+					*paths = []IzgradjeniPut{}
+					g.initDante()
+				case sdl.SCANCODE_T:
+					return ekran, true
 				}
 			}
+		case *sdl.MouseButtonEvent:
+			if e.Type == sdl.MOUSEBUTTONDOWN {
+				g.handleMouseClick(e, klik)
+			}
+		}
+	}
+	return ekran, false
+}
+
+// Event klika misa
+func (g *Levels) handleMouseClick(e *sdl.MouseButtonEvent, klik *Kliknut) {
+	if e.Clicks == 1 && e.Button == sdl.BUTTON_LEFT && g.KlikUnutra(e.X, e.Y) {
+		if klik.brKlikova == 0 {
+			klik.klik1x, klik.klik1y = e.X, e.Y
+			klik.brKlikova++
+			klik.kliknuto1 = true
+		} else if klik.brKlikova == 1 && g.DozvoljenoSpajanje(klik.klik1x, klik.klik1y, e.X, e.Y) {
+			klik.klik2x, klik.klik2y = e.X, e.Y
+			klik.brKlikova++
+			klik.kliknuto2 = true
+		}
+	} else if e.Clicks == 1 && e.Button == sdl.BUTTON_RIGHT {
+		klik.brKlikova = 0
+		klik.kliknuto1 = false
+	}
+}
+
+func (g *Levels) Run(ekran screens.ScreenID, score *int) screens.ScreenID {
+	horizontalPaths := []IzgradjeniPut{}
+	var klik Kliknut
+	g.dobarTunel()
+	g.initDante()
+
+	for true {
+		//Eventovi
+		nextScreen, shouldReturn := g.handleEvents(&horizontalPaths, &klik, ekran)
+		if shouldReturn {
+			return nextScreen
 		}
 
 		g.Game.Renderer.Clear()
