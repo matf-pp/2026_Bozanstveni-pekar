@@ -98,17 +98,33 @@ func (g *Levels) Close() {
 
 		mix.HaltMusic()
 		mix.HaltChannel(-1)
-		g.Music.Free()
-		g.Music = nil
-		g.dante.tekstura.Destroy()
-		g.dante.tekstura = nil
-		g.goodTunnel.Destroy()
-		g.goodTunnel = nil
-		g.badTunnel.Destroy()
-		g.badTunnel = nil
-		g.verticalPath.Destroy()
-		g.verticalPath = nil
-		g.krug.Destroy()
-		g.krug = nil
+		if g.Music != nil {
+			g.Music.Free()
+			g.Music = nil
+		}
+		if g.dante.tekstura != nil {
+			g.dante.tekstura.Destroy()
+			g.dante.tekstura = nil
+		}
+		if g.goodTunnel != nil {
+			g.goodTunnel.Destroy()
+			g.goodTunnel = nil
+		}
+		if g.badTunnel != nil {
+			g.badTunnel.Destroy()
+			g.badTunnel = nil
+		}
+		if g.verticalPath != nil {
+			g.verticalPath.Destroy()
+			g.verticalPath = nil
+		}
+		if g.krug != nil {
+			g.krug.Destroy()
+			g.krug = nil
+		}
+		if g.BaseGame.BackgroundImage != nil {
+			g.BaseGame.BackgroundImage.Destroy()
+			g.BaseGame.BackgroundImage = nil
+		}
 	}
 }

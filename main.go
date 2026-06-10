@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src"
 	"github.com/matf-pp/2026_Bozanstveni-pekar/src/screens"
@@ -11,6 +12,11 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
+
+// Zakljucava izvrsavanje na glavnoj niti operativnog sistema, go automatski pokrece
+func init() {
+	runtime.LockOSThread()
+}
 
 const (
 	windowTitle = "Bozanstveni pekar"
@@ -94,6 +100,8 @@ func main() {
 			start := screens.NewStartGame(engine)
 			start.LoadMedia()
 			screen = start.Run(&ime)
+			start.Close()
+
 			if screen == screens.TransitionScreen {
 				levelVar, circleVar, levelNum, levelStr = screens.Level1Screen, "prvi", 1, "Limb"
 			}
@@ -103,22 +111,26 @@ func main() {
 			gameOver.LoadMedia(score, ime)
 			gameOver.CreateBlur()
 			screen = gameOver.Run()
+			gameOver.Close()
 
 		case screens.CongratsScreen:
 			congrats := screens.NewCongrats(engine)
 			congrats.LoadMedia()
 			congrats.CreateBlur()
 			screen = congrats.Run()
+			congrats.Close()
 
 		case screens.Level9Screen:
 			lvl9 := src.NewLevel(engine)
 			lvl9.LoadMedia("images/lvl9.png")
 			screen = lvl9.Run(screens.CongratsScreen, &score)
+			lvl9.Close()
 
 		case screens.TransitionScreen:
 			transition := screens.NewTransition(engine, levelVar, circleVar, levelNum, levelStr)
 			transition.LoadMedia()
 			screen = transition.Run()
+			transition.Close()
 
 		//ostali nivoi
 		default:
@@ -126,6 +138,7 @@ func main() {
 				lvl := src.NewLevel(engine)
 				lvl.LoadMedia(data.ImgPath)
 				screen = lvl.Run(screens.TransitionScreen, &score)
+				lvl.Close()
 
 				if screen == screens.TransitionScreen {
 					levelVar = data.NextScreen

@@ -29,6 +29,11 @@ type GameOver struct {
 
 	leb  *sdl.Texture
 	blur *sdl.Texture
+
+	tryAgainTextW      int32
+	tryAgainTextH      int32
+	tryAgainHoverTextW int32
+	tryAgainHoverTextH int32
 }
 
 func NewGameOver(game *Game) *GameOver {
@@ -166,6 +171,10 @@ func (g *GameOver) LoadMedia(score int, ime string) error {
 	if err != nil {
 		return fmt.Errorf("error playing music %v\n", err)
 	}
+
+	_, _, g.tryAgainTextW, g.tryAgainTextH, _ = g.tryAgainButton.textBtnTexture.Query()
+	_, _, g.tryAgainHoverTextW, g.tryAgainHoverTextH, _ = g.tryAgainHoverButton.textBtnTexture.Query()
+
 	return err
 }
 
@@ -254,11 +263,13 @@ func (g *GameOver) Run() ScreenID {
 
 		if g.tryAgainButton.hovered {
 			tex = g.tryAgainButton.hoverTextTexture
+			tw = g.tryAgainHoverTextW
+			th = g.tryAgainHoverTextH
 		} else {
 			tex = g.tryAgainButton.textBtnTexture
+			tw = g.tryAgainTextW
+			th = g.tryAgainTextH
 		}
-
-		_, _, tw, th, _ = tex.Query()
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.tryAgainButton.rect.X + (g.tryAgainButton.rect.W-tw)/2,
@@ -278,32 +289,68 @@ func (g *GameOver) Close() {
 		mix.HaltMusic()
 		mix.HaltChannel(-1)
 
-		g.Music.Free()
-		g.Music = nil
+		if g.Music != nil {
+			g.Music.Free()
+			g.Music = nil
+		}
 
-		g.ClickSound.Free()
-		g.ClickSound = nil
-		g.screenTextTexture.Destroy()
-		g.screenTextTexture = nil
+		if g.ClickSound != nil {
+			g.ClickSound.Free()
+			g.ClickSound = nil
+		}
 
-		g.blur.Destroy()
-		g.blur = nil
+		if g.screenTextTexture != nil {
+			g.screenTextTexture.Destroy()
+			g.screenTextTexture = nil
+		}
 
-		g.tryAgainButton.texture.Destroy()
-		g.tryAgainButton.texture = nil
-		g.tryAgainHoverButton.texture.Destroy()
-		g.tryAgainHoverButton.texture = nil
+		if g.blur != nil {
+			g.blur.Destroy()
+			g.blur = nil
+		}
 
-		g.smiley.Destroy()
-		g.smiley = nil
+		if g.smiley != nil {
+			g.smiley.Destroy()
+			g.smiley = nil
+		}
 
-		g.BackgroundImage.Destroy()
-		g.BackgroundImage = nil
+		if g.rezultatText != nil {
+			g.rezultatText.Destroy()
+			g.rezultatText = nil
+		}
 
-		g.rezultatText.Destroy()
-		g.rezultatText = nil
+		if g.leb != nil {
+			g.leb.Destroy()
+			g.leb = nil
+		}
 
-		g.leb.Destroy()
-		g.leb = nil
+		if g.tryAgainButton.texture != nil {
+			g.tryAgainButton.texture.Destroy()
+			g.tryAgainButton.texture = nil
+		}
+
+		if g.tryAgainHoverButton.texture != nil {
+			g.tryAgainHoverButton.texture.Destroy()
+			g.tryAgainHoverButton.texture = nil
+		}
+
+		if g.tryAgainButton.textBtnTexture != nil {
+			g.tryAgainButton.textBtnTexture.Destroy()
+			g.tryAgainButton.textBtnTexture = nil
+		}
+
+		if g.tryAgainHoverButton.textBtnTexture != nil {
+			g.tryAgainHoverButton.textBtnTexture.Destroy()
+			g.tryAgainHoverButton.textBtnTexture = nil
+		}
+
+		if g.BackgroundImage != nil {
+			g.BackgroundImage.Destroy()
+			g.BackgroundImage = nil
+		}
+
+		g.tryAgainButton.hoverTexture = nil
+		g.tryAgainButton.hoverTextTexture = nil
+		g.tryAgainHoverButton.hoverTexture = nil
 	}
 }

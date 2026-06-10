@@ -26,6 +26,11 @@ type Congrats struct {
 
 	blur    *sdl.Texture
 	snapped bool
+
+	playAgainTextW      int32
+	playAgainTextH      int32
+	playAgainHoverTextW int32
+	playAgainHoverTextH int32
 }
 
 func NewCongrats(game *Game) *Congrats {
@@ -138,6 +143,9 @@ func (g *Congrats) LoadMedia() error {
 		return fmt.Errorf("error playing music %v\n", err)
 	}
 
+	_, _, g.playAgainTextW, g.playAgainTextH, _ = g.playAgainButton.textBtnTexture.Query()
+	_, _, g.playAgainHoverTextW, g.playAgainHoverTextH, _ = g.playAgainHoverButton.textBtnTexture.Query()
+
 	return err
 }
 
@@ -146,23 +154,59 @@ func (g *Congrats) Close() {
 	if g != nil {
 		mix.HaltMusic()
 		mix.HaltChannel(-1)
-		g.Music.Free()
-		g.Music = nil
-		g.ClickSound.Free()
-		g.ClickSound = nil
-		g.screenTextTexture.Destroy()
-		g.screenTextTexture = nil
+		if g.Music != nil {
+			g.Music.Free()
+			g.Music = nil
+		}
 
-		g.uWonTexture.Destroy()
-		g.uWonTexture = nil
+		if g.ClickSound != nil {
+			g.ClickSound.Free()
+			g.ClickSound = nil
+		}
 
-		g.playAgainButton.texture.Destroy()
-		g.playAgainButton.texture = nil
-		g.playAgainHoverButton.texture.Destroy()
-		g.playAgainHoverButton.texture = nil
+		if g.screenTextTexture != nil {
+			g.screenTextTexture.Destroy()
+			g.screenTextTexture = nil
+		}
 
-		g.BackgroundImage.Destroy()
-		g.BackgroundImage = nil
+		if g.uWonTexture != nil {
+			g.uWonTexture.Destroy()
+			g.uWonTexture = nil
+		}
+
+		if g.blur != nil {
+			g.blur.Destroy()
+			g.blur = nil
+		}
+
+		if g.playAgainButton.texture != nil {
+			g.playAgainButton.texture.Destroy()
+			g.playAgainButton.texture = nil
+		}
+
+		if g.playAgainHoverButton.texture != nil {
+			g.playAgainHoverButton.texture.Destroy()
+			g.playAgainHoverButton.texture = nil
+		}
+
+		if g.playAgainButton.textBtnTexture != nil {
+			g.playAgainButton.textBtnTexture.Destroy()
+			g.playAgainButton.textBtnTexture = nil
+		}
+
+		if g.playAgainHoverButton.textBtnTexture != nil {
+			g.playAgainHoverButton.textBtnTexture.Destroy()
+			g.playAgainHoverButton.textBtnTexture = nil
+		}
+
+		if g.BackgroundImage != nil {
+			g.BackgroundImage.Destroy()
+			g.BackgroundImage = nil
+		}
+
+		g.playAgainButton.hoverTexture = nil
+		g.playAgainButton.hoverTextTexture = nil
+		g.playAgainHoverButton.hoverTexture = nil
 
 	}
 }
@@ -243,11 +287,13 @@ func (g *Congrats) Run() ScreenID {
 
 		if g.playAgainButton.hovered {
 			tex = g.playAgainButton.hoverTextTexture
+			tw = g.playAgainHoverTextW
+			th = g.playAgainHoverTextH
 		} else {
 			tex = g.playAgainButton.textBtnTexture
+			tw = g.playAgainTextW
+			th = g.playAgainTextH
 		}
-
-		_, _, tw, th, _ = tex.Query()
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.playAgainButton.rect.X + (g.playAgainButton.rect.W-tw)/2,

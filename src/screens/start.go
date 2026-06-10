@@ -103,6 +103,11 @@ type StartGame struct {
 	insertNameH int32
 	playerW     int32
 	playerH     int32
+
+	playTextW      int32
+	playTextH      int32
+	playHoverTextW int32
+	playHoverTextH int32
 }
 
 func NewStartGame(game *Game) *StartGame {
@@ -326,6 +331,9 @@ func (g *StartGame) LoadMedia() error {
 	g.playButton.hoverTexture = g.playHoverButton.texture
 	g.playButton.hoverTextTexture = g.playHoverButton.textBtnTexture
 
+	_, _, g.playTextW, g.playTextH, _ = g.playButton.textBtnTexture.Query()
+	_, _, g.playHoverTextW, g.playHoverTextH, _ = g.playHoverButton.textBtnTexture.Query()
+
 	//Zvuk za klik na dugme
 	g.ClickSound, err = mix.LoadWAV("sounds/click.mp3")
 	if err != nil {
@@ -350,41 +358,80 @@ func (g *StartGame) Close() {
 		mix.HaltMusic()
 		mix.HaltChannel(-1) //zaustavljamo sve aktivne kanale odjednom, prekidamo sve sto rn svira
 
-		g.Music.Free()
-		g.Music = nil
+		if g.Music != nil {
+			g.Music.Free()
+			g.Music = nil
+		}
 
-		g.ClickSound.Free()
-		g.ClickSound = nil
+		if g.ClickSound != nil {
+			g.ClickSound.Free()
+			g.ClickSound = nil
+		}
 
-		g.insertNameTexture.Destroy()
-		g.insertNameTexture = nil
-		g.titleTexture.Destroy()
-		g.titleTexture = nil
-		g.title2Texture.Destroy()
-		g.title2Texture = nil
+		if g.insertNameTexture != nil {
+			g.insertNameTexture.Destroy()
+			g.insertNameTexture = nil
+		}
+		if g.titleTexture != nil {
+			g.titleTexture.Destroy()
+			g.titleTexture = nil
+		}
+		if g.title2Texture != nil {
+			g.title2Texture.Destroy()
+			g.title2Texture = nil
+		}
 
-		g.newGameTexture.Destroy()
-		g.newGameTexture = nil
+		if g.newGameTexture != nil {
+			g.newGameTexture.Destroy()
+			g.newGameTexture = nil
+		}
 
-		g.newGame2Texture.Destroy()
-		g.newGame2Texture = nil
+		if g.newGame2Texture != nil {
+			g.newGame2Texture.Destroy()
+			g.newGame2Texture = nil
+		}
 
-		g.bottomTextEscTexture.Destroy()
-		g.bottomTextEscTexture = nil
-		g.bottomTextEnterTexture.Destroy()
-		g.bottomTextEnterTexture = nil
+		if g.bottomTextEscTexture != nil {
+			g.bottomTextEscTexture.Destroy()
+			g.bottomTextEscTexture = nil
+		}
+		if g.bottomTextEnterTexture != nil {
+			g.bottomTextEnterTexture.Destroy()
+			g.bottomTextEnterTexture = nil
+		}
 
-		g.playButton.texture.Destroy()
-		g.playButton.texture = nil
-		g.playHoverButton.texture.Destroy()
-		g.playHoverButton.texture = nil
+		if g.playButton.texture != nil {
+			g.playButton.texture.Destroy()
+			g.playButton.texture = nil
+		}
+		if g.playHoverButton.texture != nil {
+			g.playHoverButton.texture.Destroy()
+			g.playHoverButton.texture = nil
+		}
 
-		g.playHoverButton.hoverTexture.Destroy()
+		if g.playerNameTexture != nil {
+			g.playerNameTexture.Destroy()
+			g.playerNameTexture = nil
+		}
+
+		if g.playButton.textBtnTexture != nil {
+			g.playButton.textBtnTexture.Destroy()
+			g.playButton.textBtnTexture = nil
+		}
+
+		if g.playHoverButton.textBtnTexture != nil {
+			g.playHoverButton.textBtnTexture.Destroy()
+			g.playHoverButton.textBtnTexture = nil
+		}
+
+		if g.BackgroundImage != nil {
+			g.BackgroundImage.Destroy()
+			g.BackgroundImage = nil
+		}
+
+		g.playButton.hoverTexture = nil
+		g.playButton.hoverTextTexture = nil
 		g.playHoverButton.hoverTexture = nil
-
-		g.BackgroundImage.Destroy()
-		g.BackgroundImage = nil
-
 	}
 }
 
@@ -555,11 +602,13 @@ func (g *StartGame) Run(ime *string) ScreenID {
 
 		if g.playButton.hovered {
 			tex = g.playButton.hoverTextTexture
+			tw = g.playHoverTextW
+			th = g.playHoverTextH
 		} else {
 			tex = g.playButton.textBtnTexture
+			tw = g.playTextW
+			th = g.playTextH
 		}
-
-		_, _, tw, th, _ = tex.Query()
 
 		g.Renderer.Copy(tex, nil, &sdl.Rect{
 			X: g.playButton.rect.X + (g.playButton.rect.W-tw)/2,
@@ -568,13 +617,19 @@ func (g *StartGame) Run(ime *string) ScreenID {
 			H: th,
 		})
 
-		_, _, tw, th, _ = bottomText.Query()
+		btw := g.bottomTextEscW
+		bth := g.bottomTextEscH
+
+		if g.playButton.hovered {
+			btw = g.bottomTextEnterW
+			bth = g.bottomTextEnterH
+		}
 
 		g.Renderer.Copy(bottomText, nil, &sdl.Rect{
-			X: (WindowWidth - tw) / 2,
-			Y: (WindowHeight-th)/2 + 280,
-			W: tw,
-			H: th})
+			X: (WindowWidth - btw) / 2,
+			Y: (WindowHeight-bth)/2 + 280,
+			W: btw,
+			H: bth})
 
 		g.Renderer.Present() //prikaze sve sto je nacrtano u ovom frameu
 		sdl.Delay(16)        //koliko ce dugo da se prikaze igrica
